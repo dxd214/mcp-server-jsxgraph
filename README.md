@@ -44,7 +44,7 @@ To use with `Desktop APP`, such as Claude, VSCode, [Cline](https://cline.bot/mcp
       "command": "npx",
       "args": [
         "-y",
-        "@dxd/mcp-server-jsxgraph"
+        "mcp-server-jsxgraph"
       ]
     }
   }
@@ -62,7 +62,7 @@ On Window system:
         "/c",
         "npx",
         "-y",
-        "@dxd/mcp-server-jsxgraph"
+        "mcp-server-jsxgraph"
       ]
     }
   }
@@ -76,7 +76,7 @@ On Window system:
 Install the package globally.
 
 ```bash
-npm install -g @dxd/mcp-server-jsxgraph
+npm install -g mcp-server-jsxgraph
 ```
 
 Run the server with your preferred transport option:
