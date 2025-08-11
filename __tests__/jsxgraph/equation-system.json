@@ -1,0 +1,372 @@
+{
+  "name": "generate_equation_system",
+  "description": "Generate systems of equations visualization using JSXGraph. Solve and visualize linear and nonlinear equation systems, find intersection points, show solution sets, and analyze system properties. Supports implicit equations, parametric systems, numerical solutions, and advanced analysis including matrix representation and phase portraits.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "systems": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "equations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "expression": {
+                    "type": "string",
+                    "description": "Equation expression, e.g., 'x^2 + y^2 - 25' for x² + y² = 25"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "implicit",
+                      "explicit",
+                      "parametric"
+                    ],
+                    "default": "implicit",
+                    "description": "Type of equation"
+                  },
+                  "color": {
+                    "type": "string",
+                    "default": "#0066cc",
+                    "description": "Color of the curve"
+                  },
+                  "strokeWidth": {
+                    "type": "number",
+                    "default": 2,
+                    "description": "Width of the curve"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "Label for the equation"
+                  },
+                  "dash": {
+                    "type": "number",
+                    "default": 0,
+                    "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+                  }
+                },
+                "required": [
+                  "expression"
+                ]
+              },
+              "minItems": 2,
+              "description": "System of equations to solve simultaneously"
+            },
+            "color": {
+              "type": "string",
+              "default": "#ff6600",
+              "description": "Color for the system solution"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the system"
+            }
+          },
+          "required": [
+            "equations"
+          ]
+        },
+        "description": "Array of equation systems to solve and visualize"
+      },
+      "individualEquations": {
+        "type": "array",
+        "items": {
+          "$ref": "#/properties/systems/items/properties/equations/items"
+        },
+        "description": "Individual equations to plot (not part of a system)"
+      },
+      "showIntersections": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to highlight intersection points (solutions)"
+      },
+      "showSolutionSet": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to display the solution set algebraically"
+      },
+      "numericalSolutions": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show numerical solutions"
+          },
+          "precision": {
+            "type": "number",
+            "default": 4,
+            "description": "Decimal places for numerical solutions"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "newton",
+              "bisection",
+              "secant"
+            ],
+            "default": "newton",
+            "description": "Numerical method to use"
+          }
+        },
+        "description": "Numerical solution options"
+      },
+      "parameterAnimation": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enable parameter animation"
+          },
+          "parameter": {
+            "type": "string",
+            "default": "t",
+            "description": "Parameter name to animate"
+          },
+          "min": {
+            "type": "number",
+            "default": -5,
+            "description": "Minimum parameter value"
+          },
+          "max": {
+            "type": "number",
+            "default": 5,
+            "description": "Maximum parameter value"
+          },
+          "speed": {
+            "type": "number",
+            "default": 1,
+            "description": "Animation speed"
+          }
+        },
+        "description": "Options for animating parametric equations"
+      },
+      "solutionRegions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "systemIndex": {
+              "type": "number",
+              "description": "Index of the system defining the region"
+            },
+            "fillColor": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Fill color for the region"
+            },
+            "fillOpacity": {
+              "type": "number",
+              "default": 0.2,
+              "description": "Fill opacity (0-1)"
+            },
+            "showBoundary": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether to highlight the boundary"
+            }
+          },
+          "required": [
+            "systemIndex"
+          ]
+        },
+        "description": "Regions defined by equation systems"
+      },
+      "linearAlgebraView": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show matrix representation for linear systems"
+          },
+          "showDeterminant": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show determinant value"
+          },
+          "showEigenvalues": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show eigenvalues for homogeneous systems"
+          },
+          "showRank": {
+            "type": "boolean",
+            "default": true,
+            "description": "Show rank of coefficient matrix"
+          }
+        },
+        "description": "Linear algebra analysis for linear systems"
+      },
+      "nonlinearAnalysis": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show nonlinear system analysis"
+          },
+          "showJacobian": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show Jacobian matrix at solutions"
+          },
+          "showStability": {
+            "type": "boolean",
+            "default": false,
+            "description": "Analyze stability of equilibrium points"
+          },
+          "phasePortrait": {
+            "type": "boolean",
+            "default": false,
+            "description": "Show phase portrait for 2D systems"
+          }
+        },
+        "description": "Nonlinear system analysis options"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

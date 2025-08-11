@@ -1,0 +1,247 @@
+{
+  "name": "generate_parametric_curve",
+  "description": "Generate parametric curves using JSXGraph. Ideal for plotting curves defined by parametric equations like circles (cos(t), sin(t)), Lissajous curves, spirals, cycloids, etc. Supports multiple curves and animated traces.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "curves": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "xExpression": {
+              "type": "string",
+              "description": "X coordinate expression as function of t, e.g., 'Math.cos(t)', '3*Math.cos(t) - Math.cos(3*t)'"
+            },
+            "yExpression": {
+              "type": "string",
+              "description": "Y coordinate expression as function of t, e.g., 'Math.sin(t)', '3*Math.sin(t) - Math.sin(3*t)'"
+            },
+            "tMin": {
+              "type": "number",
+              "default": 0,
+              "description": "Minimum value of parameter t"
+            },
+            "tMax": {
+              "type": "number",
+              "default": 6.283185307179586,
+              "description": "Maximum value of parameter t"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the curve"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Name/label for the curve"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style of the line (0=solid, 1=dotted, 2=dashed)"
+            }
+          },
+          "required": [
+            "xExpression",
+            "yExpression"
+          ]
+        },
+        "minItems": 1,
+        "description": "Array of parametric curves to plot. Each curve is defined by x(t) and y(t) expressions."
+      },
+      "showTrace": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show animated trace point moving along the curve"
+      },
+      "traceSpeed": {
+        "type": "number",
+        "default": 1,
+        "description": "Speed of the trace animation (1 = normal speed)"
+      },
+      "points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X coordinate of the point"
+            },
+            "y": {
+              "type": "number",
+              "description": "Y coordinate of the point"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the point"
+            },
+            "color": {
+              "type": "string",
+              "default": "#ff0000",
+              "description": "Color of the point"
+            },
+            "size": {
+              "type": "number",
+              "default": 3,
+              "description": "Size of the point"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "description": "Optional points to plot on the graph"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "required": [
+      "curves"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

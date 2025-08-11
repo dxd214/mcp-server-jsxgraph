@@ -1,0 +1,353 @@
+{
+  "name": "generate_exponential_logarithm",
+  "description": "Generate exponential and logarithmic function visualizations using JSXGraph. Plot exponential growth/decay, logarithmic functions with various bases, show asymptotes, intercepts, inverse relationships, and growth/decay analysis. Supports logarithmic scales and tangent lines.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "functions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "exponential",
+                "logarithm"
+              ],
+              "description": "Type of function"
+            },
+            "base": {
+              "type": "number",
+              "default": 2.718281828459045,
+              "description": "Base of exponential/logarithm (default: e)"
+            },
+            "coefficient": {
+              "type": "number",
+              "default": 1,
+              "description": "Coefficient: a in a*b^x or a*log_b(x)"
+            },
+            "hShift": {
+              "type": "number",
+              "default": 0,
+              "description": "Horizontal shift"
+            },
+            "vShift": {
+              "type": "number",
+              "default": 0,
+              "description": "Vertical shift"
+            },
+            "expression": {
+              "type": "string",
+              "description": "Custom expression (overrides other parameters)"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the curve"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the function"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            },
+            "domain": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "description": "Domain [min, max]"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "minItems": 1,
+        "description": "Array of exponential and logarithmic functions to plot"
+      },
+      "showAsymptotes": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show horizontal/vertical asymptotes"
+      },
+      "showIntercepts": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show and label x and y intercepts"
+      },
+      "showInverse": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show the inverse function"
+      },
+      "showReflectionLine": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show y=x line for inverse relationship"
+      },
+      "comparisonPoints": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X coordinate to compare values"
+            },
+            "showValues": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show function values at this point"
+            }
+          },
+          "required": [
+            "x"
+          ]
+        },
+        "description": "Points to compare function values"
+      },
+      "growthDecayAnalysis": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to show growth/decay analysis"
+          },
+          "initialValue": {
+            "type": "number",
+            "description": "Initial value for growth/decay model"
+          },
+          "timeUnit": {
+            "type": "string",
+            "default": "t",
+            "description": "Time unit label"
+          },
+          "rateLabel": {
+            "type": "string",
+            "default": "rate",
+            "description": "Growth/decay rate label"
+          }
+        },
+        "description": "Growth and decay analysis options"
+      },
+      "logarithmicScale": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Use logarithmic scale"
+          },
+          "axis": {
+            "type": "string",
+            "enum": [
+              "x",
+              "y",
+              "both"
+            ],
+            "default": "y",
+            "description": "Which axis to use log scale"
+          }
+        },
+        "description": "Logarithmic scale options"
+      },
+      "specialPoints": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X coordinate"
+            },
+            "y": {
+              "type": "number",
+              "description": "Y coordinate"
+            },
+            "label": {
+              "type": "string",
+              "description": "Label for the point"
+            },
+            "color": {
+              "type": "string",
+              "default": "#ff0000",
+              "description": "Color of the point"
+            },
+            "size": {
+              "type": "number",
+              "default": 4,
+              "description": "Size of the point"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "description": "Special points to highlight (e.g., (0,1) for exponentials)"
+      },
+      "tangentAt": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "description": "X coordinates where to show tangent lines"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "required": [
+      "functions"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

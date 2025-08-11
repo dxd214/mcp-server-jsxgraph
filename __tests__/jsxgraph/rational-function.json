@@ -1,0 +1,345 @@
+{
+  "name": "generate_rational_function",
+  "description": "Generate rational and irrational function visualizations using JSXGraph. Plot rational functions with asymptotes (vertical, horizontal, oblique), holes, intercepts, and critical points. Visualize irrational functions with domain restrictions. Supports factorization, partial fractions, and end behavior analysis.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "rationalFunctions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "numerator": {
+              "type": "string",
+              "description": "Numerator polynomial expression, e.g., 'x^2 + 2*x + 1'"
+            },
+            "denominator": {
+              "type": "string",
+              "description": "Denominator polynomial expression, e.g., 'x - 1'"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the function curve"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the function"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            }
+          },
+          "required": [
+            "numerator",
+            "denominator"
+          ]
+        },
+        "description": "Array of rational functions (P(x)/Q(x)) to plot"
+      },
+      "irrationalFunctions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "expression": {
+              "type": "string",
+              "description": "Irrational function expression, e.g., 'Math.sqrt(x)', 'Math.cbrt(x^2 - 1)'"
+            },
+            "domain": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "description": "Domain restrictions [min, max]"
+            },
+            "color": {
+              "type": "string",
+              "default": "#009900",
+              "description": "Color of the function curve"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the function"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            }
+          },
+          "required": [
+            "expression"
+          ]
+        },
+        "description": "Array of irrational functions (involving roots) to plot"
+      },
+      "showVerticalAsymptotes": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show vertical asymptotes"
+      },
+      "showHorizontalAsymptotes": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show horizontal asymptotes"
+      },
+      "showObliqueAsymptotes": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show oblique/slant asymptotes"
+      },
+      "showHoles": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show removable discontinuities (holes)"
+      },
+      "showIntercepts": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show x and y intercepts"
+      },
+      "showCriticalPoints": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show local maxima and minima"
+      },
+      "showDomainRestrictions": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to highlight domain restrictions for irrational functions"
+      },
+      "analyzeEndBehavior": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show end behavior analysis"
+      },
+      "factorization": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to show factored form"
+          },
+          "simplify": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to simplify and cancel common factors"
+          }
+        },
+        "description": "Factorization and simplification options"
+      },
+      "partialFractions": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show partial fraction decomposition"
+      },
+      "tangentLines": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "description": "X coordinates where to draw tangent lines"
+      },
+      "shadeRegions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "above",
+                "below",
+                "between"
+              ],
+              "description": "Region type relative to function"
+            },
+            "functionIndex": {
+              "type": "number",
+              "description": "Index of the function to shade relative to"
+            },
+            "bounds": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2,
+              "description": "X bounds [min, max]"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Shade color"
+            },
+            "opacity": {
+              "type": "number",
+              "default": 0.2,
+              "description": "Shade opacity (0-1)"
+            }
+          },
+          "required": [
+            "type",
+            "functionIndex"
+          ]
+        },
+        "description": "Regions to shade"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

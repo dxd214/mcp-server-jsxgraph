@@ -1,0 +1,462 @@
+{
+  "name": "generate_conic_section",
+  "description": "Generate conic sections and high-degree polynomials using JSXGraph. Visualize circles, ellipses, parabolas, hyperbolas with their foci, directrices, vertices, and asymptotes. Plot polynomials with roots, critical points, and inflection points. Supports general conic equations, rotated conics, and intersection analysis.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "conics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "circle",
+                "ellipse",
+                "parabola",
+                "hyperbola"
+              ],
+              "description": "Type of conic section"
+            },
+            "center": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "default": 0,
+                  "description": "X coordinate of center"
+                },
+                "y": {
+                  "type": "number",
+                  "default": 0,
+                  "description": "Y coordinate of center"
+                }
+              },
+              "description": "Center point (for circle, ellipse, hyperbola)"
+            },
+            "radius": {
+              "type": "number",
+              "description": "Radius (for circle)"
+            },
+            "a": {
+              "type": "number",
+              "description": "Semi-major axis (for ellipse) or parameter a (for hyperbola)"
+            },
+            "b": {
+              "type": "number",
+              "description": "Semi-minor axis (for ellipse) or parameter b (for hyperbola)"
+            },
+            "p": {
+              "type": "number",
+              "description": "Parameter p for parabola (4p is the focal parameter)"
+            },
+            "vertex": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "default": 0,
+                  "description": "X coordinate of vertex"
+                },
+                "y": {
+                  "type": "number",
+                  "default": 0,
+                  "description": "Y coordinate of vertex"
+                }
+              },
+              "description": "Vertex point (for parabola)"
+            },
+            "orientation": {
+              "type": "string",
+              "enum": [
+                "horizontal",
+                "vertical"
+              ],
+              "default": "vertical",
+              "description": "Orientation of the conic"
+            },
+            "rotation": {
+              "type": "number",
+              "default": 0,
+              "description": "Rotation angle in degrees"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the conic"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "fillColor": {
+              "type": "string",
+              "description": "Fill color (if applicable)"
+            },
+            "fillOpacity": {
+              "type": "number",
+              "default": 0,
+              "description": "Fill opacity (0-1)"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the conic"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "description": "Array of standard conic sections to plot"
+      },
+      "generalConics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "A": {
+              "type": "number",
+              "description": "Coefficient of x²"
+            },
+            "B": {
+              "type": "number",
+              "description": "Coefficient of xy"
+            },
+            "C": {
+              "type": "number",
+              "description": "Coefficient of y²"
+            },
+            "D": {
+              "type": "number",
+              "description": "Coefficient of x"
+            },
+            "E": {
+              "type": "number",
+              "description": "Coefficient of y"
+            },
+            "F": {
+              "type": "number",
+              "description": "Constant term"
+            },
+            "color": {
+              "type": "string",
+              "default": "#009900",
+              "description": "Color of the conic"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the conic"
+            }
+          },
+          "required": [
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F"
+          ]
+        },
+        "description": "Conic sections in general form: Ax² + Bxy + Cy² + Dx + Ey + F = 0"
+      },
+      "polynomials": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "coefficients": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "description": "Polynomial coefficients [a₀, a₁, a₂, ...] for a₀ + a₁x + a₂x² + ..."
+            },
+            "color": {
+              "type": "string",
+              "default": "#ff6600",
+              "description": "Color of the polynomial"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the polynomial"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            }
+          },
+          "required": [
+            "coefficients"
+          ]
+        },
+        "description": "High-degree polynomial functions to plot"
+      },
+      "showFoci": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show foci for conics"
+      },
+      "showDirectrix": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show directrix for parabolas and general conics"
+      },
+      "showAsymptotes": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show asymptotes for hyperbolas"
+      },
+      "showCenter": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to mark the center of conics"
+      },
+      "showVertices": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to mark vertices of conics"
+      },
+      "showEccentricity": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to display eccentricity values"
+      },
+      "showTangents": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "point": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "X coordinate of tangent point"
+                },
+                "y": {
+                  "type": "number",
+                  "description": "Y coordinate of tangent point"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ],
+              "description": "Point where to draw tangent"
+            },
+            "conicIndex": {
+              "type": "number",
+              "description": "Index of conic to draw tangent to"
+            }
+          },
+          "required": [
+            "point"
+          ]
+        },
+        "description": "Tangent lines to draw"
+      },
+      "showPolynomialRoots": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to mark roots of polynomials"
+      },
+      "showCriticalPoints": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show critical points of polynomials"
+      },
+      "showInflectionPoints": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show inflection points of polynomials"
+      },
+      "degreeAnalysis": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show polynomial degree and leading coefficient analysis"
+      },
+      "intersectionAnalysis": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to find intersections"
+          },
+          "between": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Indices of curves to find intersections between"
+          }
+        },
+        "description": "Intersection analysis options"
+      },
+      "polarForm": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show polar form equations for conics"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

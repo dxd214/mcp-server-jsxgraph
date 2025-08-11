@@ -1,0 +1,312 @@
+{
+  "name": "generate_function_transformation",
+  "description": "Generate function transformations using JSXGraph. Visualize translations, scaling, reflections, absolute value, inverse functions, and function composition. Shows how functions change under various transformations with optional animation and step-by-step visualization.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "baseFunction": {
+        "type": "object",
+        "properties": {
+          "expression": {
+            "type": "string",
+            "description": "Base function expression, e.g., 'x^2', 'Math.sin(x)', 'Math.sqrt(x)'"
+          },
+          "color": {
+            "type": "string",
+            "default": "#0066cc",
+            "description": "Color of the base function"
+          },
+          "strokeWidth": {
+            "type": "number",
+            "default": 2,
+            "description": "Width of the base function curve"
+          },
+          "name": {
+            "type": "string",
+            "default": "f(x)",
+            "description": "Label for the base function"
+          },
+          "domain": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "Domain [min, max]"
+          }
+        },
+        "required": [
+          "expression"
+        ],
+        "description": "The original function to transform"
+      },
+      "transformations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "translate",
+                "scale",
+                "reflect",
+                "absolute",
+                "inverse",
+                "composite"
+              ],
+              "description": "Type of transformation to apply"
+            },
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "h": {
+                  "type": "number",
+                  "description": "Horizontal translation (for translate)"
+                },
+                "k": {
+                  "type": "number",
+                  "description": "Vertical translation (for translate)"
+                },
+                "a": {
+                  "type": "number",
+                  "description": "Vertical scale factor (for scale)"
+                },
+                "b": {
+                  "type": "number",
+                  "description": "Horizontal scale factor (for scale)"
+                },
+                "axis": {
+                  "type": "string",
+                  "enum": [
+                    "x",
+                    "y",
+                    "both"
+                  ],
+                  "description": "Reflection axis (for reflect)"
+                },
+                "innerFunction": {
+                  "type": "string",
+                  "description": "Inner function g(x) for composition"
+                }
+              },
+              "description": "Parameters for the transformation"
+            },
+            "color": {
+              "type": "string",
+              "description": "Color for the transformed function"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the transformed curve"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the transformation"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "minItems": 1,
+        "description": "Array of transformations to apply and visualize"
+      },
+      "showSteps": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show intermediate transformation steps"
+      },
+      "showVectors": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show transformation vectors for translations"
+      },
+      "highlightPoints": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X coordinate on base function"
+            },
+            "showTransformed": {
+              "type": "boolean",
+              "default": true,
+              "description": "Show corresponding points on transformed functions"
+            }
+          },
+          "required": [
+            "x"
+          ]
+        },
+        "description": "Points to highlight on base and transformed functions"
+      },
+      "animateTransformation": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to animate the transformation with a slider"
+      },
+      "compareMode": {
+        "type": "string",
+        "enum": [
+          "overlay",
+          "side-by-side"
+        ],
+        "default": "overlay",
+        "description": "How to display the functions"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "required": [
+      "baseFunction",
+      "transformations"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

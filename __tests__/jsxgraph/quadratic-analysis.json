@@ -1,0 +1,304 @@
+{
+  "name": "generate_quadratic_analysis",
+  "description": "Generate comprehensive quadratic function analysis using JSXGraph. Visualize parabolas with vertex, axis of symmetry, roots, y-intercept, focus, directrix, and discriminant analysis. Shows vertex form, factorized form, tangent lines, and shaded regions. Perfect for studying quadratic properties and transformations.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "quadratics": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "a": {
+              "type": "number",
+              "description": "Coefficient of x² (ax² + bx + c)"
+            },
+            "b": {
+              "type": "number",
+              "description": "Coefficient of x (ax² + bx + c)"
+            },
+            "c": {
+              "type": "number",
+              "description": "Constant term (ax² + bx + c)"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the parabola"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the curve"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the function"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            }
+          },
+          "required": [
+            "a",
+            "b",
+            "c"
+          ]
+        },
+        "minItems": 1,
+        "description": "Array of quadratic functions to analyze (ax² + bx + c form)"
+      },
+      "showVertex": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show and label the vertex"
+      },
+      "showAxisOfSymmetry": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show the axis of symmetry"
+      },
+      "showRoots": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show and label the roots/x-intercepts"
+      },
+      "showYIntercept": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show the y-intercept"
+      },
+      "showFocusDirectrix": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show the focus and directrix"
+      },
+      "showDiscriminant": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to display discriminant value and root nature"
+      },
+      "vertexForm": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to display the vertex form: a(x-h)² + k"
+      },
+      "factorizedForm": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to display the factorized form if applicable"
+      },
+      "tangentLines": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X coordinate where to draw tangent"
+            },
+            "color": {
+              "type": "string",
+              "default": "#ff9900",
+              "description": "Color of tangent line"
+            }
+          },
+          "required": [
+            "x"
+          ]
+        },
+        "description": "Points where to draw tangent lines"
+      },
+      "shadeRegion": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "above",
+              "below",
+              "between"
+            ],
+            "description": "Region to shade"
+          },
+          "bounds": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "X bounds for shading [min, max]"
+          },
+          "color": {
+            "type": "string",
+            "default": "#0066cc",
+            "description": "Shade color"
+          },
+          "opacity": {
+            "type": "number",
+            "default": 0.2,
+            "description": "Shade opacity (0-1)"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "description": "Region to shade relative to the parabola"
+      },
+      "compareMode": {
+        "type": "string",
+        "enum": [
+          "overlay",
+          "transform-sequence"
+        ],
+        "default": "overlay",
+        "description": "How to display multiple quadratics"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "required": [
+      "quadratics"
+    ],
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}

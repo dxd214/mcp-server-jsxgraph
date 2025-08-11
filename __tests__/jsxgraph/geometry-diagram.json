@@ -1,0 +1,473 @@
+{
+  "name": "generate_geometry_diagram",
+  "description": "Generate interactive geometry diagrams using JSXGraph. Create points, lines, circles, polygons, angles, and geometric constructions. Perfect for visualizing geometric concepts, theorems, and constructions like triangles, perpendiculars, angle bisectors, etc.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number",
+              "description": "X coordinate of the point"
+            },
+            "y": {
+              "type": "number",
+              "description": "Y coordinate of the point"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the point"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the point"
+            },
+            "size": {
+              "type": "number",
+              "default": 4,
+              "description": "Size of the point"
+            },
+            "fixed": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether the point is fixed (non-draggable)"
+            },
+            "visible": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether the point is visible"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "description": "Array of points to create. Points can be referenced by name in other elements.",
+        "default": []
+      },
+      "lines": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "point1": {
+              "type": "string",
+              "description": "Name of the first point"
+            },
+            "point2": {
+              "type": "string",
+              "description": "Name of the second point"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "line",
+                "segment",
+                "ray"
+              ],
+              "default": "segment",
+              "description": "Type of line: line (infinite), segment (between points), or ray (from point1 through point2)"
+            },
+            "color": {
+              "type": "string",
+              "default": "#333333",
+              "description": "Color of the line"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the line"
+            },
+            "dash": {
+              "type": "number",
+              "default": 0,
+              "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
+            },
+            "name": {
+              "type": "string",
+              "description": "Label for the line"
+            }
+          },
+          "required": [
+            "point1",
+            "point2"
+          ]
+        },
+        "description": "Array of lines, segments, or rays connecting points"
+      },
+      "circles": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "center": {
+              "type": "string",
+              "description": "Name of the center point"
+            },
+            "radius": {
+              "type": "number",
+              "description": "Fixed radius value (if not provided, uses second point)"
+            },
+            "throughPoint": {
+              "type": "string",
+              "description": "Name of a point on the circle (for dynamic radius)"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the circle"
+            },
+            "fillColor": {
+              "type": "string",
+              "description": "Fill color of the circle"
+            },
+            "fillOpacity": {
+              "type": "number",
+              "default": 0,
+              "description": "Fill opacity (0-1)"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the circle outline"
+            }
+          },
+          "required": [
+            "center"
+          ]
+        },
+        "description": "Array of circles defined by center and radius or through-point"
+      },
+      "polygons": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "vertices": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 3,
+              "description": "Array of point names forming the polygon vertices"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Border color of the polygon"
+            },
+            "fillColor": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Fill color of the polygon"
+            },
+            "fillOpacity": {
+              "type": "number",
+              "default": 0.3,
+              "description": "Fill opacity (0-1)"
+            },
+            "strokeWidth": {
+              "type": "number",
+              "default": 2,
+              "description": "Width of the polygon border"
+            }
+          },
+          "required": [
+            "vertices"
+          ]
+        },
+        "description": "Array of polygons defined by their vertices"
+      },
+      "angles": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "point1": {
+              "type": "string",
+              "description": "First point of the angle"
+            },
+            "vertex": {
+              "type": "string",
+              "description": "Vertex point of the angle"
+            },
+            "point2": {
+              "type": "string",
+              "description": "Second point of the angle"
+            },
+            "radius": {
+              "type": "number",
+              "default": 30,
+              "description": "Radius of the angle arc in pixels"
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "arc",
+                "sector"
+              ],
+              "default": "arc",
+              "description": "Display as arc or filled sector"
+            },
+            "color": {
+              "type": "string",
+              "default": "#ff9900",
+              "description": "Color of the angle"
+            },
+            "fillOpacity": {
+              "type": "number",
+              "default": 0.3,
+              "description": "Fill opacity for sector type (0-1)"
+            },
+            "label": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether to show angle measurement"
+            }
+          },
+          "required": [
+            "point1",
+            "vertex",
+            "point2"
+          ]
+        },
+        "description": "Array of angles to display and measure"
+      },
+      "showMeasurements": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show measurements (distances, angles)"
+      },
+      "construction": {
+        "type": "object",
+        "properties": {
+          "perpendicular": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "string",
+                  "description": "Name of the line (point1-point2)"
+                },
+                "throughPoint": {
+                  "type": "string",
+                  "description": "Point through which perpendicular passes"
+                }
+              },
+              "required": [
+                "line",
+                "throughPoint"
+              ]
+            }
+          },
+          "parallel": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "line": {
+                  "type": "string",
+                  "description": "Name of the line (point1-point2)"
+                },
+                "throughPoint": {
+                  "type": "string",
+                  "description": "Point through which parallel passes"
+                }
+              },
+              "required": [
+                "line",
+                "throughPoint"
+              ]
+            }
+          },
+          "midpoint": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "point1": {
+                  "type": "string",
+                  "description": "First point"
+                },
+                "point2": {
+                  "type": "string",
+                  "description": "Second point"
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name for the midpoint"
+                }
+              },
+              "required": [
+                "point1",
+                "point2",
+                "name"
+              ]
+            }
+          },
+          "bisector": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "point1": {
+                  "type": "string",
+                  "description": "First point of the angle"
+                },
+                "vertex": {
+                  "type": "string",
+                  "description": "Vertex of the angle"
+                },
+                "point2": {
+                  "type": "string",
+                  "description": "Second point of the angle"
+                }
+              },
+              "required": [
+                "point1",
+                "vertex",
+                "point2"
+              ]
+            }
+          }
+        },
+        "description": "Geometric constructions like perpendiculars, parallels, midpoints, and angle bisectors"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "default",
+              "dark",
+              "light"
+            ],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the diagram."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "default": "",
+        "description": "Set the title of the math chart."
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [
+          -10,
+          10,
+          10,
+          -10
+        ],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    },
+    "$schema": "http://json-schema.org/draft-07/schema#"
+  }
+}
