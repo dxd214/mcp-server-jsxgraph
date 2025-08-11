@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { getDisabledTools, getVisRequestServer } from "../../src/utils/env";
 
+// 声明全局 process 类型
+declare global {
+  var process: NodeJS.Process;
+}
+
 describe("env", () => {
   it("default vis request server", () => {
     expect(getVisRequestServer()).toBe(

@@ -44,7 +44,7 @@ To use with `Desktop APP`, such as Claude, VSCode, [Cline](https://cline.bot/mcp
       "command": "npx",
       "args": [
         "-y",
-        "@antv/mcp-server-jsxgraph"
+        "@dxd/mcp-server-jsxgraph"
       ]
     }
   }
@@ -62,7 +62,7 @@ On Window system:
         "/c",
         "npx",
         "-y",
-        "@antv/mcp-server-jsxgraph"
+        "@dxd/mcp-server-jsxgraph"
       ]
     }
   }
@@ -76,7 +76,7 @@ On Window system:
 Install the package globally.
 
 ```bash
-npm install -g @antv/mcp-server-jsxgraph
+npm install -g @dxd/mcp-server-jsxgraph
 ```
 
 Run the server with your preferred transport option:
@@ -146,7 +146,7 @@ You can disable specific mathematical visualization tools using the `DISABLED_TO
       "command": "npx",
       "args": [
         "-y",
-        "@antv/mcp-server-jsxgraph"
+        "@dxd/mcp-server-jsxgraph"
       ],
       "env": {
         "DISABLED_TOOLS": "generate_function_graph,generate_parametric_curve"

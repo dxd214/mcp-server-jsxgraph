@@ -4,8 +4,8 @@ FROM node:16
 # Set workdir
 WORKDIR /app
 
-# Global install of @antv/mcp-server-chart
-RUN npm install -g @antv/mcp-server-chart
+# Global install of @dxd/mcp-server-chart
+RUN npm install -g @dxd/mcp-server-chart
 
 # Start the server (using streamable for transmission)
 CMD ["mcp-server-chart", "--transport", "sse", "--port", "1123"]
