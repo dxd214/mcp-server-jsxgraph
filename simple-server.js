@@ -36,7 +36,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   
-  if (url === '/health') {
+  if (url === '/health' || url.startsWith('/health')) {
     res.setHeader('Content-Type', 'application/json');
     res.writeHead(200);
     res.end(JSON.stringify({
@@ -44,7 +44,9 @@ const server = http.createServer((req, res) => {
       service: 'Simple MCP Server JSXGraph',
       timestamp: new Date().toISOString(),
       port: port,
-      host: host
+      host: host,
+      url: url,
+      method: method
     }));
     return;
   }
@@ -64,7 +66,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   
-  if (url === '/mcp' && method === 'POST') {
+  if ((url === '/mcp' || url.startsWith('/mcp')) && method === 'POST') {
     let body = '';
     req.on('data', chunk => {
       body += chunk.toString();
@@ -155,8 +157,19 @@ const server = http.createServer((req, res) => {
     return;
   }
   
+  // Log all unhandled requests
+  console.log(`❓ Unhandled request: ${method} ${url}`);
+  
+  // Return JSON for any unhandled request to help with debugging
+  res.setHeader('Content-Type', 'application/json');
   res.writeHead(404);
-  res.end('Not Found');
+  res.end(JSON.stringify({
+    error: 'Not Found',
+    method: method,
+    url: url,
+    timestamp: new Date().toISOString(),
+    message: 'This is the MCP Server JSXGraph. Available endpoints: /, /health, /mcp'
+  }));
 });
 
 server.listen(port, host, () => {
