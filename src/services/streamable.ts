@@ -216,9 +216,7 @@ export const startHTTPStreamableServer = async (
       return;
     }
 
-    // If we reach here, no handler matched - this should be rare since 
-    // httpServer.ts handles common endpoints before calling this function
-    console.log(`[MCP] Unhandled request: ${req.method} ${reqUrl.pathname}`);
+    // If we reach here, no handler matched
     res.writeHead(404).end("Not found");
   };
 

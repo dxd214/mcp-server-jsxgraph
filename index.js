@@ -4,10 +4,9 @@ const http = require('http');
 const port = process.env.PORT || 3000;
 const host = '0.0.0.0';
 
-console.log('🚀 MCP Server starting on', host + ':' + port);
-
-// Server status flag
-let serverReady = false;
+console.log('🚀 MCP Server JSXGraph Starting...');
+console.log('Port:', port);
+console.log('Host:', host);
 
 // Simple MCP tools
 const TOOLS = [
@@ -37,35 +36,9 @@ const server = http.createServer((req, res) => {
   const url = req.url;
   const method = req.method;
   
-  // Only log non-health check requests to reduce noise
-  if (url !== '/' && url !== '/health' && url !== '/ping' && url !== '/status') {
-    console.log(`${method} ${url}`);
-  }
+  console.log(`${method} ${url}`);
   
-  // Fast health check endpoints (no CORS, minimal processing)
-  if (url === '/' || url === '/health') {
-    if (!serverReady) {
-      res.writeHead(503, { 'Content-Type': 'text/plain' });
-      res.end('Starting up...');
-      return;
-    }
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('OK');
-    return;
-  }
-  
-  if (url === '/ping' || url === '/status') {
-    if (!serverReady) {
-      res.writeHead(503, { 'Content-Type': 'application/json' });
-      res.end('{"status":"starting","message":"Server is starting up"}');
-      return;
-    }
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end('{"status":"ok","timestamp":"' + new Date().toISOString() + '"}');
-    return;
-  }
-  
-  // CORS for all other endpoints
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
@@ -76,147 +49,80 @@ const server = http.createServer((req, res) => {
     return;
   }
   
-  // API info endpoint
-  if (url === '/api' || url === '/info') {
+  // Root path
+  if (url === '/') {
     res.setHeader('Content-Type', 'application/json');
     res.writeHead(200);
-    res.end('{"name":"JSXGraph MCP Server","version":"0.0.1","endpoints":{"mcp":"/mcp","health":"/"}}');
+    res.end(JSON.stringify({
+      name: 'JSXGraph MCP Server',
+      version: '0.0.1',
+      description: 'Mathematical visualization server',
+      endpoints: { health: '/health', mcp: '/mcp' }
+    }));
+    return;
+  }
+  
+  // Health check
+  if (url === '/health') {
+    res.setHeader('Content-Type', 'application/json');
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      status: 'healthy',
+      timestamp: new Date().toISOString()
+    }));
     return;
   }
   
   // MCP endpoint
-  if (url === '/mcp') {
-    if (method === 'GET') {
-      // GET request for MCP info and tools
-      res.setHeader('Content-Type', 'application/json');
-      res.writeHead(200);
-      res.end(JSON.stringify({
-        name: 'JSXGraph MCP Server',
-        version: '0.0.1',
-        protocol: 'MCP 2025-8-12',
-        tools: TOOLS,
-        endpoints: {
-          mcp: '/mcp',
-          health: '/',
-          info: '/api'
-        }
-      }));
-      return;
-    }
-    
-    if (method === 'POST') {
-      let body = '';
-      req.on('data', chunk => body += chunk);
-      req.on('end', () => {
-        try {
-          const data = JSON.parse(body);
-          res.setHeader('Content-Type', 'application/json');
-          
-          if (data.method === 'initialize') {
-            res.writeHead(200);
-            res.end(JSON.stringify({
-              jsonrpc: '2.0',
-              id: data.id,
-              result: {
-                protocolVersion: '2025-8-12',
-                capabilities: { tools: {} },
-                serverInfo: { 
-                  name: 'mcp-server-jsxgraph', 
-                  version: '0.0.1',
-                  updated: '2025-08-12'
-                }
-              }
-            }));
-            return;
-          }
-          
-          if (data.method === 'tools/list') {
-            res.writeHead(200);
-            res.end(JSON.stringify({
-              jsonrpc: '2.0',
-              id: data.id,
-              result: { tools: TOOLS }
-            }));
-            return;
-          }
-          
-          if (data.method === 'tools/call') {
-            const toolName = data.params?.name;
-            let jsCode = '';
-            
-            if (toolName === 'generate_function_graph') {
-              const functions = data.params?.arguments?.functions || [{ expression: 'x^2' }];
-              jsCode = `
-// JSXGraph Function Graph
-const board = JXG.JSXGraph.initBoard('jxgbox', {
-  boundingbox: [-10, 10, 10, -10],
-  axis: true,
-  showCopyright: false,
-  grid: true
-});
-
-${functions.map((func, i) => 
-  `const f${i} = board.create('functiongraph', [
-    function(x) { 
-      try { 
-        return ${func.expression.replace(/\^/g, '**')}; 
-      } catch(e) { 
-        return x*x; 
-      } 
-    }
-  ], { 
-    strokeColor: '${func.color || '#0066cc'}', 
-    strokeWidth: 2 
-  });`
-).join('\n')}
-`;
-            } else {
-              jsCode = `
-// JSXGraph Basic Chart
-const board = JXG.JSXGraph.initBoard('jxgbox', {
-  boundingbox: [-5, 5, 5, -5],
-  axis: true,
-  showCopyright: false
-});
-const point = board.create('point', [1, 2], {name: 'A'});
-`;
-            }
-            
-            res.writeHead(200);
-            res.end(JSON.stringify({
-              jsonrpc: '2.0',
-              id: data.id,
-              result: {
-                content: [{
-                  type: 'text',
-                  text: jsCode
-                }]
-              }
-            }));
-            return;
-          }
-          
-          // Unknown method
+  if (url === '/mcp' && method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        res.setHeader('Content-Type', 'application/json');
+        
+        if (data.method === 'initialize') {
           res.writeHead(200);
           res.end(JSON.stringify({
             jsonrpc: '2.0',
             id: data.id,
-            error: {
-              code: -32601,
-              message: 'Method not found'
+            result: {
+              protocolVersion: '2024-11-05',
+              capabilities: { tools: {} },
+              serverInfo: { name: 'mcp-server-jsxgraph', version: '0.0.1' }
             }
           }));
-          
-        } catch (error) {
-          res.writeHead(400);
+          return;
+        }
+        
+        if (data.method === 'tools/list') {
+          res.writeHead(200);
           res.end(JSON.stringify({
             jsonrpc: '2.0',
-            error: { code: -32700, message: 'Parse error' }
+            id: data.id,
+            result: { tools: TOOLS }
           }));
+          return;
         }
-      });
-      return;
-    }
+        
+        // Default response
+        res.writeHead(200);
+        res.end(JSON.stringify({
+          jsonrpc: '2.0',
+          id: data.id,
+          result: { message: 'MCP Server working!' }
+        }));
+        
+      } catch (error) {
+        res.writeHead(400);
+        res.end(JSON.stringify({
+          jsonrpc: '2.0',
+          error: { code: -32700, message: 'Parse error' }
+        }));
+      }
+    });
+    return;
   }
   
   // 404
@@ -227,30 +133,9 @@ const point = board.create('point', [1, 2], {name: 'A'});
 
 server.listen(port, host, () => {
   console.log(`✅ MCP Server listening on ${host}:${port}`);
-  console.log('Health check endpoints:');
-  console.log('  - GET / (main health check)');
-  console.log('  - GET /health (alternative)');
-  console.log('  - GET /ping (deployment platform)');
-  console.log('  - GET /status (deployment platform)');
-  console.log('MCP endpoint: GET/POST /mcp');
-  
-  // Mark server as ready for health checks
-  serverReady = true;
-  console.log('Server ready for health checks');
-});
-
-server.on('error', (error) => {
-  console.error('Server error:', error);
-  process.exit(1);
 });
 
 process.on('SIGINT', () => {
-  console.log('Shutting down...');
-  server.close();
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
   console.log('Shutting down...');
   server.close();
   process.exit(0);

@@ -1,10 +1,10 @@
-run = "node replit-server.js"
+run = "node index.js"
 
 [nix]
 channel = "stable-23_11"
 
 [deployment]
-run = ["sh", "-c", "node replit-server.js"]
+run = ["sh", "-c", "node index.js"]
 
 [packager]
 language = "nodejs"
