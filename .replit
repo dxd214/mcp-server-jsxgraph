@@ -1,8 +1,15 @@
-run = "chmod +x start.sh && ./start.sh"
+run = "node index.js"
 
 [nix]
 channel = "stable-23_11"
 
-[env]
-PORT = "3000"
-NODE_ENV = "production"
+[deployment]
+run = ["sh", "-c", "node index.js"]
+
+[packager]
+language = "nodejs"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+enabledForHosting = false
