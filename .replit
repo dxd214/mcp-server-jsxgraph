@@ -1,16 +1,10 @@
-run = "node replit-start.js"
-entrypoint = "replit-start.js"
-
-[env]
-PORT = "3000"
-NODE_ENV = "production"
+run = "node index.js"
 
 [nix]
 channel = "stable-23_11"
 
 [deployment]
-run = ["sh", "-c", "node replit-start.js"]
-publicDir = "/"
+run = ["sh", "-c", "node index.js"]
 
 [packager]
 language = "nodejs"
