@@ -8,8 +8,22 @@ console.log('='.repeat(50));
 console.log('Time:', new Date().toISOString());
 console.log('Node Version:', process.version);
 console.log('Platform:', process.platform);
+console.log('Architecture:', process.arch);
+console.log('Current Working Directory:', process.cwd());
+console.log('Process ID:', process.pid);
+console.log('User ID:', process.getuid ? process.getuid() : 'N/A');
+console.log('Memory Usage:', JSON.stringify(process.memoryUsage(), null, 2));
 console.log('Port:', port);
 console.log('Host:', host);
+console.log('Environment Variables:');
+Object.keys(process.env).filter(key => 
+  key.startsWith('REPL') || 
+  key.includes('PORT') || 
+  key.includes('NODE') ||
+  key.includes('PATH')
+).forEach(key => {
+  console.log(`- ${key}:`, process.env[key]);
+});
 console.log('='.repeat(50));
 
 // Simple MCP tools definition

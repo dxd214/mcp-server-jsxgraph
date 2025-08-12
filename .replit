@@ -1,4 +1,4 @@
-run = "node standalone.js"
+run = "chmod +x start.sh && ./start.sh"
 
 [nix]
 channel = "stable-23_11"
@@ -6,10 +6,3 @@ channel = "stable-23_11"
 [env]
 PORT = "3000"
 NODE_ENV = "production"
-
-[packager]
-language = "nodejs"
-
-[packager.features]
-packageSearch = true
-guessImports = true

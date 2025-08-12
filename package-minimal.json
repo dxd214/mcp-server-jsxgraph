@@ -1,0 +1,15 @@
+{
+  "name": "mcp-server-jsxgraph",
+  "version": "1.0.0",
+  "description": "Standalone MCP Server for JSXGraph - No dependencies required",
+  "main": "standalone.js",
+  "scripts": {
+    "start": "node standalone.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["mcp", "jsxgraph", "mathematics", "visualization"],
+  "author": "dxd",
+  "license": "MIT"
+}
