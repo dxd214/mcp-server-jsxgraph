@@ -36,7 +36,9 @@ const server = http.createServer((req, res) => {
   const url = req.url;
   const method = req.method;
   
-  console.log(`${method} ${url}`);
+  const timestamp = new Date().toISOString();
+  const userAgent = req.headers['user-agent'] || 'unknown';
+  console.log(`[${timestamp}] ${method} ${url} - ${userAgent.substring(0, 50)}`);
   
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -193,6 +195,26 @@ server.listen(port, host, () => {
   console.log(`🏥 Health check: http://${host}:${port}/`);
   console.log(`🔗 MCP endpoint: http://${host}:${port}/mcp`);
   console.log(`📋 Server ready for requests!`);
+  
+  // Self-test health check
+  setTimeout(() => {
+    console.log('🔍 Running self-test health check...');
+    const http = require('http');
+    const req = http.request(`http://localhost:${port}/`, { timeout: 5000 }, (res) => {
+      console.log(`🎉 Self-test result: ${res.statusCode} ${res.statusMessage}`);
+      if (res.statusCode === 200) {
+        console.log('✅ STARTUP COMPLETE - Server is fully operational!');
+      }
+    });
+    req.on('error', (err) => {
+      console.log(`⚠️  Self-test failed: ${err.message}`);
+    });
+    req.on('timeout', () => {
+      console.log('⚠️  Self-test timed out');
+      req.destroy();
+    });
+    req.end();
+  }, 1000);
 });
 
 server.on('error', (error) => {
