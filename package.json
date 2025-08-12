@@ -2,7 +2,7 @@
   "name": "mcp-server-jsxgraph",
   "description": "A Model Context Protocol server for generating mathematical visualizations using JSXGraph. This is a TypeScript-based MCP server that provides interactive mathematical chart generation capabilities for functions, geometry, parametric curves, and more.",
   "version": "0.0.1",
-  "main": "index.js",
+  "main": "standalone.js",
   "types": "build/index.d.ts",
   "exports": {
     "./sdk": "./build/sdk.js"
@@ -61,6 +61,6 @@
     "vitest": "^3.1.4"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }

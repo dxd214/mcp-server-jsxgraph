@@ -1,4 +1,4 @@
-run = "node index.js"
+run = "node standalone.js"
 
 [nix]
 channel = "stable-23_11"
