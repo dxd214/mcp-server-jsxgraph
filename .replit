@@ -1,0 +1,28 @@
+run = "npm start"
+entrypoint = "src/index.ts"
+
+[nix]
+channel = "stable-23_11"
+
+[env]
+PORT = "1122"
+
+[packager]
+language = "nodejs"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+
+[languages]
+[languages.javascript]
+pattern = "**/*.js"
+syntax = "javascript"
+
+[languages.typescript]
+pattern = "**/*.ts"
+syntax = "typescript"
+
+[languages.json]
+pattern = "**/*.json"
+syntax = "json"
