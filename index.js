@@ -51,16 +51,10 @@ const server = http.createServer((req, res) => {
     return;
   }
   
-  // Root path
+  // Root path - ultra-fast health check
   if (url === '/') {
-    res.setHeader('Content-Type', 'application/json');
-    res.writeHead(200);
-    res.end(JSON.stringify({
-      name: 'JSXGraph MCP Server',
-      version: '0.0.1',
-      description: 'Mathematical visualization server',
-      endpoints: { health: '/health', mcp: '/mcp' }
-    }));
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('OK');
     return;
   }
   
