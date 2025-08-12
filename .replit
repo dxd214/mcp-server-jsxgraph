@@ -1,11 +1,12 @@
-run = "npm start"
-entrypoint = "src/index.ts"
+run = "npm install && npm run build && node build/index.js --transport streamable --port $PORT"
+entrypoint = "build/index.js"
 
 [nix]
 channel = "stable-23_11"
 
 [env]
-PORT = "1122"
+PORT = "3000"
+NODE_ENV = "production"
 
 [packager]
 language = "nodejs"

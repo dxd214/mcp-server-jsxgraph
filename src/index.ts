@@ -17,7 +17,7 @@ const { values } = parseArgs({
     port: {
       type: "string",
       short: "p",
-      default: "1122",
+      default: process.env.PORT || "1122",
     },
     endpoint: {
       type: "string",
