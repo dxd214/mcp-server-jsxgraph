@@ -1,5 +1,4 @@
-run = "npm install && npm run build && node start-replit.js"
-entrypoint = "start-replit.js"
+run = "node simple-server.js"
 
 [nix]
 channel = "stable-23_11"
@@ -14,16 +13,3 @@ language = "nodejs"
 [packager.features]
 packageSearch = true
 guessImports = true
-
-[languages]
-[languages.javascript]
-pattern = "**/*.js"
-syntax = "javascript"
-
-[languages.typescript]
-pattern = "**/*.ts"
-syntax = "typescript"
-
-[languages.json]
-pattern = "**/*.json"
-syntax = "json"
