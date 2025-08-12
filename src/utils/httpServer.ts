@@ -51,6 +51,23 @@ function handleCommonEndpoints(
     return true;
   }
 
+  // Handle root path - return MCP server info
+  if (req.method === "GET" && req.url === "/") {
+    res.setHeader("Content-Type", "application/json");
+    res.writeHead(200).end(JSON.stringify({
+      name: "JSXGraph MCP Server",
+      version: "0.0.1",
+      description: "A Model Context Protocol server for generating mathematical visualizations using JSXGraph",
+      endpoints: {
+        mcp: "/mcp",
+        sse: "/sse"
+      },
+      protocol: "MCP 1.0",
+      transport: "HTTP Streamable"
+    }));
+    return true;
+  }
+
   if (req.method === "GET" && req.url === "/health") {
     res.writeHead(200, { "Content-Type": "text/plain" }).end("OK");
     return true;
