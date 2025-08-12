@@ -1,5 +1,5 @@
-run = "node start-server.js"
-entrypoint = "start-server.js"
+run = "node replit-start.js"
+entrypoint = "replit-start.js"
 
 [env]
 PORT = "3000"
@@ -9,7 +9,7 @@ NODE_ENV = "production"
 channel = "stable-23_11"
 
 [deployment]
-run = ["sh", "-c", "node start-server.js"]
+run = ["sh", "-c", "node replit-start.js"]
 publicDir = "/"
 
 [packager]
