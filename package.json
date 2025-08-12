@@ -12,8 +12,8 @@
     "build": "tsc && tsc-alias -p tsconfig.json",
     "postbuild": "chmod +x build/index.js",
     "vercel-build": "npm run build",
-    "start": "npm run build && node build/index.js --transport streamable",
-    "prepare": "npm run build",
+    "start": "node start-server.js",
+    "prepare": "echo 'Skipping prepare for Replit deployment'",
     "prepublishOnly": "npm run build",
     "test": "vitest",
     "lint": "biome check --write && biome format --write"
@@ -60,6 +60,6 @@
     "vitest": "^3.1.4"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
