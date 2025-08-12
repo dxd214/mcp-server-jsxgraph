@@ -12,7 +12,7 @@
     "build": "tsc && tsc-alias -p tsconfig.json",
     "postbuild": "chmod +x build/index.js",
     "vercel-build": "npm run build",
-    "start": "npm run build && node build/index.js --transport streamable --port 1122",
+    "start": "npm run build && node build/index.js --transport streamable",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "test": "vitest",

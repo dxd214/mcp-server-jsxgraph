@@ -1,5 +1,5 @@
-run = "npm install && npm run build && node build/index.js --transport streamable --port $PORT"
-entrypoint = "build/index.js"
+run = "npm install && npm run build && node start-replit.js"
+entrypoint = "start-replit.js"
 
 [nix]
 channel = "stable-23_11"

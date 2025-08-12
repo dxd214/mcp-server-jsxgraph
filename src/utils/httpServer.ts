@@ -69,7 +69,15 @@ function handleCommonEndpoints(
   }
 
   if (req.method === "GET" && req.url === "/health") {
-    res.writeHead(200, { "Content-Type": "text/plain" }).end("OK");
+    res.setHeader("Content-Type", "application/json");
+    res.writeHead(200).end(JSON.stringify({
+      status: "healthy",
+      service: "MCP Server JSXGraph",
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      env: process.env.NODE_ENV || 'development'
+    }));
     return true;
   }
 
@@ -158,7 +166,10 @@ export function createBaseHttpServer(
   setupCleanupHandlers(httpServer, handlers.cleanup);
 
   // Start listening and log server info
-  httpServer.listen(port, () => {
+  // Bind to 0.0.0.0 for Replit/cloud deployment compatibility
+  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+  httpServer.listen(port, host, () => {
+    console.log(`${handlers.serverType} listening on ${host}:${port}${endpoint}`);
     logServerStartup(handlers.serverType, port, endpoint);
   });
 

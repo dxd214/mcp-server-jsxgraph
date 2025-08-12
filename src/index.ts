@@ -50,6 +50,12 @@ Options:
 // Run in the specified transport mode
 const transport = values.transport.toLowerCase();
 
+console.log('=== MCP Server JSXGraph Starting ===');
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Port from ENV:', process.env.PORT);
+console.log('Port from args:', values.port);
+console.log('Transport:', transport);
+
 if (transport === "sse") {
   const port = Number.parseInt(values.port as string, 10);
   // Use provided endpoint or default to "/sse" for SSE
