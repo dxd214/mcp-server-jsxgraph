@@ -99,12 +99,71 @@ const server = http.createServer((req, res) => {
           return;
         }
         
-        // Default response
+        if (data.method === 'tools/call') {
+          const toolName = data.params?.name;
+          let jsCode = '';
+          
+          if (toolName === 'generate_function_graph') {
+            const functions = data.params?.arguments?.functions || [{ expression: 'x^2' }];
+            jsCode = `
+// JSXGraph Function Graph
+const board = JXG.JSXGraph.initBoard('jxgbox', {
+  boundingbox: [-10, 10, 10, -10],
+  axis: true,
+  showCopyright: false,
+  grid: true
+});
+
+${functions.map((func, i) => 
+  `const f${i} = board.create('functiongraph', [
+    function(x) { 
+      try { 
+        return ${func.expression.replace(/\^/g, '**')}; 
+      } catch(e) { 
+        return x*x; 
+      } 
+    }
+  ], { 
+    strokeColor: '${func.color || '#0066cc'}', 
+    strokeWidth: 2 
+  });`
+).join('\n')}
+`;
+          } else {
+            jsCode = `
+// JSXGraph Basic Chart
+const board = JXG.JSXGraph.initBoard('jxgbox', {
+  boundingbox: [-5, 5, 5, -5],
+  axis: true,
+  showCopyright: false
+});
+const point = board.create('point', [1, 2], {name: 'A'});
+`;
+          }
+          
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            jsonrpc: '2.0',
+            id: data.id,
+            result: {
+              content: [{
+                type: 'text',
+                text: jsCode
+              }]
+            }
+          }));
+          return;
+        }
+        
+        // Unknown method
         res.writeHead(200);
         res.end(JSON.stringify({
           jsonrpc: '2.0',
           id: data.id,
-          result: { message: 'MCP Server working!' }
+          error: {
+            code: -32601,
+            message: 'Method not found'
+          }
         }));
         
       } catch (error) {
