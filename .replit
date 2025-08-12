@@ -1,10 +1,16 @@
-run = "node index.js"
+run = "node start-server.js"
+entrypoint = "start-server.js"
+
+[env]
+PORT = "3000"
+NODE_ENV = "production"
 
 [nix]
 channel = "stable-23_11"
 
 [deployment]
-run = ["sh", "-c", "node index.js"]
+run = ["sh", "-c", "node start-server.js"]
+publicDir = "/"
 
 [packager]
 language = "nodejs"

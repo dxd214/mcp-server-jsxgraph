@@ -52,7 +52,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@modelcontextprotocol/inspector": "^0.14.2",
     "@types/node": "^22.15.21",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
