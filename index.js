@@ -81,7 +81,7 @@ const server = http.createServer((req, res) => {
             jsonrpc: '2.0',
             id: data.id,
             result: {
-              protocolVersion: '2024-11-05',
+              protocolVersion: '2025-8-12',
               capabilities: { tools: {} },
               serverInfo: { name: 'mcp-server-jsxgraph', version: '0.0.1' }
             }
