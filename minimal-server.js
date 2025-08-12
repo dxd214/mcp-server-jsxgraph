@@ -17,8 +17,11 @@ const server = http.createServer((req, res) => {
   
   // Replit Autoscale health check endpoint
   if (req.url === '/') {
-    // Fastest possible response - no headers manipulation
+    // Add headers that Replit might expect
     res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Content-Length', '2');
+    res.setHeader('Cache-Control', 'no-cache');
     res.end('OK');
     return;
   }
@@ -46,6 +49,11 @@ server.listen(port, host, () => {
   console.log('🏥 Health check endpoint: / (returns 200 OK)');
   console.log('🔗 MCP info endpoint: /mcp');
   console.log('📋 Ready for Autoscale traffic!');
+  
+  // Keep-alive mechanism to prevent premature exit
+  setInterval(() => {
+    // Silent heartbeat - no console output to avoid spam
+  }, 30000); // 30 seconds
 });
 
 server.on('error', (err) => {
