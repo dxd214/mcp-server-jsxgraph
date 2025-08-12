@@ -4,9 +4,7 @@ const http = require('http');
 const port = process.env.PORT || 3000;
 const host = '0.0.0.0';
 
-console.log('🚀 MCP Server JSXGraph Starting...');
-console.log('Port:', port);
-console.log('Host:', host);
+console.log('🚀 MCP Server starting on', host + ':' + port);
 
 // Simple MCP tools
 const TOOLS = [
@@ -36,7 +34,10 @@ const server = http.createServer((req, res) => {
   const url = req.url;
   const method = req.method;
   
-  console.log(`${method} ${url}`);
+  // Only log non-health check requests to reduce noise
+  if (url !== '/' && url !== '/health') {
+    console.log(`${method} ${url}`);
+  }
   
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -49,27 +50,19 @@ const server = http.createServer((req, res) => {
     return;
   }
   
-  // Root path
-  if (url === '/') {
-    res.setHeader('Content-Type', 'application/json');
+  // Root path - Replit health check endpoint
+  if (url === '/' || url === '/health') {
+    res.setHeader('Content-Type', 'text/plain');
     res.writeHead(200);
-    res.end(JSON.stringify({
-      name: 'JSXGraph MCP Server',
-      version: '0.0.1',
-      description: 'Mathematical visualization server',
-      endpoints: { health: '/health', mcp: '/mcp' }
-    }));
+    res.end('OK');
     return;
   }
   
-  // Health check
-  if (url === '/health') {
+  // API info endpoint
+  if (url === '/api' || url === '/info') {
     res.setHeader('Content-Type', 'application/json');
     res.writeHead(200);
-    res.end(JSON.stringify({
-      status: 'healthy',
-      timestamp: new Date().toISOString()
-    }));
+    res.end('{"name":"JSXGraph MCP Server","version":"0.0.1","endpoints":{"mcp":"/mcp","health":"/"}}');
     return;
   }
   
@@ -133,9 +126,22 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
   console.log(`✅ MCP Server listening on ${host}:${port}`);
+  console.log('Health check: GET /');
+  console.log('MCP endpoint: POST /mcp');
+});
+
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  process.exit(1);
 });
 
 process.on('SIGINT', () => {
+  console.log('Shutting down...');
+  server.close();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
   console.log('Shutting down...');
   server.close();
   process.exit(0);
