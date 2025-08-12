@@ -3,26 +3,30 @@
   "name": "jsxgraph-mcp-server",
   "builds": [
     {
-      "src": "build/index.js",
+      "src": "vercel-server.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/mcp",
-      "dest": "/build/index.js"
+      "dest": "/vercel-server.js"
     },
     {
-      "src": "/sse",
-      "dest": "/build/index.js"
+      "src": "/sse", 
+      "dest": "/vercel-server.js"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/build/index.js"
+      "dest": "/vercel-server.js"
     }
   ],
   "functions": {
-    "build/index.js": {
+    "vercel-server.js": {
       "maxDuration": 30,
       "memory": 1024
     }
