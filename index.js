@@ -133,6 +133,17 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
   console.log(`✅ MCP Server listening on ${host}:${port}`);
+  console.log(`🏥 Health check: http://${host}:${port}/`);
+  console.log(`🔗 MCP endpoint: http://${host}:${port}/mcp`);
+  console.log(`📋 Server ready for requests!`);
+});
+
+server.on('error', (error) => {
+  console.error('❌ Server failed to start:', error);
+  if (error.code === 'EADDRINUSE') {
+    console.error(`   Port ${port} is already in use`);
+  }
+  process.exit(1);
 });
 
 process.on('SIGINT', () => {
