@@ -83,7 +83,11 @@ const server = http.createServer((req, res) => {
             result: {
               protocolVersion: '2025-8-12',
               capabilities: { tools: {} },
-              serverInfo: { name: 'mcp-server-jsxgraph', version: '0.0.1' }
+              serverInfo: { 
+                name: 'mcp-server-jsxgraph', 
+                version: '0.0.1',
+                updated: '2025-08-12'
+              }
             }
           }));
           return;
