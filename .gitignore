@@ -20,6 +20,9 @@ lib
 esm
 build
 
+# Keep public directory for Vercel
+!public/
+
 # Test
 coverage
 
