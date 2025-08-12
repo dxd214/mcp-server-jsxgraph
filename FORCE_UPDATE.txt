@@ -1,0 +1,3 @@
+FORCE UPDATE TIMESTAMP: 2025-08-12 16:42:00
+This file forces Replit to detect changes and redeploy.
+Current deployment attempt: FINAL_FIX

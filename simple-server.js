@@ -4,8 +4,20 @@ const port = process.env.PORT || 3000;
 const host = '0.0.0.0';
 
 console.log('🚀 Starting Simple MCP Server...');
+console.log('='.repeat(50));
+console.log('Time:', new Date().toISOString());
+console.log('Process ID:', process.pid);
+console.log('Node Version:', process.version);
+console.log('Platform:', process.platform);
+console.log('Working Directory:', process.cwd());
 console.log('Port:', port);
 console.log('Host:', host);
+console.log('Environment Variables:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT);
+console.log('- REPL_SLUG:', process.env.REPL_SLUG);
+console.log('- REPL_OWNER:', process.env.REPL_OWNER);
+console.log('='.repeat(50));
 
 const server = http.createServer((req, res) => {
   const url = req.url;
