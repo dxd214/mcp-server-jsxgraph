@@ -1,10 +1,10 @@
-run = "node index.js"
+run = "node start-replit.js"
 
 [nix]
 channel = "stable-23_11"
 
 [deployment]
-run = ["sh", "-c", "node index.js"]
+run = ["sh", "-c", "node start-replit.js"]
 
 [packager]
 language = "nodejs"
