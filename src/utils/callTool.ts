@@ -23,6 +23,7 @@ const CHART_TYPE_MAP = {
   generate_equation_system: "equation-system",
   generate_conic_section: "conic-section",
   generate_polynomial_steps: "polynomial-steps",
+  generate_polynomial_complete: "polynomial-complete",
 } as const;
 
 // JSXGraph chart types
@@ -39,6 +40,9 @@ const JSXGRAPH_CHARTS = new Set([
   "equation-system",
   "conic-section",
   "polynomial-steps",
+  "polynomial-complete",
+  "number-line",
+  "function-properties",
 ]);
 
 /**

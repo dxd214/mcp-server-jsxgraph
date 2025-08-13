@@ -182,14 +182,19 @@ export class MathAnalysisEngine {
         return (x: number) => 0;
       }
 
-      // 使用eval创建函数，在当前上下文中Math对象可用
-      const funcCode = `(function(x) { return ${safeExpression}; })`;
-      const func = eval(funcCode) as (x: number) => number;
+      // 使用更兼容的方式传递Math对象
+      const globalMath = Math;
+      const func = new Function('x', 'globalMath', `
+        const Math = globalMath;
+        return ${safeExpression};
+      `) as (x: number, math: typeof Math) => number;
+      
+      const wrappedFunc = (x: number) => func(x, globalMath);
       
       // 测试函数是否工作
-      func(0);
+      wrappedFunc(0);
       
-      return func;
+      return wrappedFunc;
     } catch (error) {
       console.warn(`无法解析表达式: ${expression}`, error);
       return (x: number) => 0; // 返回默认函数
@@ -252,7 +257,7 @@ export class MathAnalysisEngine {
     // 检查x=0处的值
     try {
       const valueAtZero = func(0);
-      if (Math.abs(valueAtZero) < 1e-10) {
+      if (Math.abs(valueAtZero) < 1e-12) {
         xIntercepts.push(0);
       }
     } catch (e) {
@@ -280,7 +285,7 @@ export class MathAnalysisEngine {
             }
           }
           // 检查是否接近零（处理重根）
-          else if (Math.abs(currentY) < 1e-8 && !xIntercepts.some(existing => Math.abs(existing - x) < 1e-6)) {
+          else if (Math.abs(currentY) < 1e-12 && !xIntercepts.some(existing => Math.abs(existing - x) < 1e-6)) {
             xIntercepts.push(Number.parseFloat(x.toFixed(6)));
           }
         }

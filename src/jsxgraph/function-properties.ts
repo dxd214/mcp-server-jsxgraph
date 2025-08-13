@@ -326,21 +326,63 @@ export function generateFunctionProperties(input: any): string {
   const {
     function: mainFunction,
     functions = [],
-    analyze = {},
-    display = {},
-    advanced = {},
+    analyze = {
+      domain: true,
+      range: true,
+      intercepts: true,
+      extrema: true,
+      monotonicity: true,
+      concavity: true,
+      asymptotes: true,
+      inflectionPoints: true,
+      periodicity: true,
+      symmetry: true,
+      continuity: true,
+    },
+    display = {
+      showGraph: true,
+      showTable: true,
+      annotateGraph: true,
+      showWorkSteps: false,
+      showAsymptoteLines: true,
+      showTangentLines: [],
+    },
+    advanced = {
+      compareMode: false,
+      precision: 3,
+      samplingDensity: 100,
+      errorTolerance: 1e-6,
+      showWorkSteps: false,
+    },
     title,
     width = 800,
     height = 600,
     boundingBox = [-10, 10, 10, -10],
     axisXTitle = "x",
     axisYTitle = "y",
-    style = {},
+    style = {
+      theme: "default" as const,
+      backgroundColor: "#ffffff",
+      grid: true,
+      axis: true,
+    },
     keepAspectRatio = false,
     showCopyright = false,
     showNavigation = true,
-    zoom = {},
-    pan = {},
+    zoom = {
+      enabled: true,
+      factorX: 1.25,
+      factorY: 1.25,
+      wheel: true,
+      needShift: false,
+      min: 0.1,
+      max: 10.0,
+    },
+    pan = {
+      enabled: true,
+      needShift: false,
+      needTwoFingers: false,
+    },
   } = validatedInput;
 
   // 确定要分析的函数列表
@@ -357,7 +399,9 @@ export function generateFunctionProperties(input: any): string {
     annotations: any[];
   }> = [];
 
-  const domain: [number, number] = mainFunction.domain || [boundingBox[0], boundingBox[2]];
+  const domain: [number, number] = mainFunction.domain && mainFunction.domain.length === 2 
+    ? [mainFunction.domain[0], mainFunction.domain[1]] 
+    : [boundingBox[0], boundingBox[2]];
 
   functionsToAnalyze.forEach((func) => {
     const result = analyzeFunctionProperties(func, {
