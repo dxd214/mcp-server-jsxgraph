@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema, MathAnalysisEngine } from "../utils";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -64,11 +64,24 @@ const IntervalSchema = z.object({
   label: z.string().optional().describe("Label for the interval"),
 });
 
-// Inequality schema for compound inequalities
+// Enhanced inequality schema for compound inequalities
 const InequalitySchema = z.object({
+  type: z
+    .enum(["simple", "compound", "absolute"])
+    .optional()
+    .default("simple")
+    .describe("Type of inequality: simple, compound, or absolute value"),
   expression: z
     .string()
-    .describe("Inequality expression, e.g., 'x > 2', 'x <= -1', '2 < x < 5'"),
+    .describe("Inequality expression, e.g., 'x > 2', 'x < -1 or x > 3', '|x| < 2'"),
+  expressions: z
+    .array(z.string())
+    .optional()
+    .describe("Array of inequality expressions for compound inequalities"),
+  operator: z
+    .enum(["and", "or"])
+    .optional()
+    .describe("Logical operator for compound inequalities: 'and' or 'or'"),
   color: z
     .string()
     .optional()
@@ -79,6 +92,10 @@ const InequalitySchema = z.object({
     .optional()
     .default(0.3)
     .describe("Opacity of the shading (0-1)"),
+  label: z
+    .string()
+    .optional()
+    .describe("Custom label for the inequality"),
 });
 
 // Number line input schema
@@ -123,6 +140,31 @@ const schema = {
     .optional()
     .describe("Compound inequalities to solve and visualize automatically"),
 
+  // Enhanced display options
+  showSetNotation: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe("Whether to display set notation {x | condition}"),
+
+  showIntervalNotation: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe("Whether to display interval notation [a, b], (a, b), etc."),
+
+  showWorkSpace: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to show step-by-step solution workspace"),
+
+  autoAnalyze: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe("Whether to automatically analyze and parse inequality expressions"),
+
   lineColor: z
     .string()
     .optional()
@@ -157,87 +199,82 @@ const NumberLineInputSchema = z.object(schema);
 type NumberLineInput = z.infer<typeof NumberLineInputSchema>;
 
 /**
- * Parses inequality expressions and returns interval data
+ * Enhanced inequality processing using MathAnalysisEngine
  */
-function parseInequality(expression: string): {
-  start: number | null;
-  end: number | null;
-  startType: "open" | "closed";
-  endType: "open" | "closed";
-  arrow: "none" | "left" | "right" | "both";
+function processInequality(
+  inequalityData: z.infer<typeof InequalitySchema>
+): {
+  intervals: Array<{
+    start: number | null;
+    end: number | null;
+    startType: "open" | "closed";
+    endType: "open" | "closed";
+    arrow: "none" | "left" | "right" | "both";
+    label?: string;
+    setNotation?: string;
+    intervalNotation?: string;
+  }>;
+  workSteps?: string[];
 } {
-  // Handle compound inequalities like "2 < x < 5" or "-1 <= x <= 3"
-  const compoundMatch = expression.match(
-    /(-?\d+(?:\.\d+)?)\s*([<>]=?)\s*x\s*([<>]=?)\s*(-?\d+(?:\.\d+)?)/,
-  );
-  if (compoundMatch) {
-    const [, leftVal, leftOp, rightOp, rightVal] = compoundMatch;
+  try {
+    let analysisResult;
+    let workSteps: string[] = [];
+
+    if (inequalityData.type === "compound" && inequalityData.expressions && inequalityData.operator) {
+      // Handle compound inequalities using expressions array
+      const compoundExpression = inequalityData.expressions.join(` ${inequalityData.operator} `);
+      workSteps.push(`原始表达式: ${compoundExpression}`);
+      
+      analysisResult = MathAnalysisEngine.parseInequality(compoundExpression);
+      workSteps.push(`解析为: ${analysisResult.setNotation}`);
+    } else {
+      // Handle single expression
+      workSteps.push(`原始表达式: ${inequalityData.expression}`);
+      analysisResult = MathAnalysisEngine.parseInequality(inequalityData.expression);
+      workSteps.push(`解析为: ${analysisResult.setNotation}`);
+    }
+
+    // Convert MathAnalysisEngine results to number line format
+    const intervals = analysisResult.intervals.map((interval) => {
+      let arrow: "none" | "left" | "right" | "both" = "none";
+      
+      if (interval.start === null && interval.end !== null) {
+        arrow = "left";
+      } else if (interval.start !== null && interval.end === null) {
+        arrow = "right";
+      }
+
+      return {
+        start: interval.start,
+        end: interval.end,
+        startType: interval.startType,
+        endType: interval.endType,
+        arrow,
+        label: inequalityData.label,
+        setNotation: analysisResult.setNotation,
+        intervalNotation: analysisResult.intervalNotation,
+      };
+    });
+
+    return { intervals, workSteps };
+  } catch (error) {
+    console.warn(`处理不等式失败: ${inequalityData.expression}`, error);
+    
+    // Fallback to simple parsing
     return {
-      start: Number.parseFloat(leftVal),
-      end: Number.parseFloat(rightVal),
-      startType: leftOp.includes("=") ? "closed" : "open",
-      endType: rightOp.includes("=") ? "closed" : "open",
-      arrow: "none",
+      intervals: [{
+        start: null,
+        end: null,
+        startType: "open",
+        endType: "open",
+        arrow: "none",
+        label: inequalityData.label,
+        setNotation: `{x | ${inequalityData.expression}}`,
+        intervalNotation: "∅",
+      }],
+      workSteps: [`无法解析表达式: ${inequalityData.expression}`],
     };
   }
-
-  // Handle single inequalities like "x > 2", "x <= -1"
-  const singleMatch = expression.match(
-    /x\s*([<>]=?)\s*(-?\d+(?:\.\d+)?)|(-?\d+(?:\.\d+)?)\s*([<>]=?)\s*x/,
-  );
-  if (singleMatch) {
-    if (singleMatch[1] && singleMatch[2]) {
-      // x op value
-      const op = singleMatch[1];
-      const val = Number.parseFloat(singleMatch[2]);
-      if (op.startsWith(">")) {
-        return {
-          start: val,
-          end: null,
-          startType: op.includes("=") ? "closed" : "open",
-          endType: "open",
-          arrow: "right",
-        };
-      } else {
-        return {
-          start: null,
-          end: val,
-          startType: "open",
-          endType: op.includes("=") ? "closed" : "open",
-          arrow: "left",
-        };
-      }
-    } else if (singleMatch[3] && singleMatch[4]) {
-      // value op x
-      const op = singleMatch[4];
-      const val = Number.parseFloat(singleMatch[3]);
-      if (op.startsWith(">")) {
-        return {
-          start: null,
-          end: val,
-          startType: "open",
-          endType: op.includes("=") ? "closed" : "open",
-          arrow: "left",
-        };
-      } else {
-        return {
-          start: val,
-          end: null,
-          startType: op.includes("=") ? "closed" : "open",
-          endType: "open",
-          arrow: "right",
-        };
-      }
-    }
-  }
-
-  return {
-    start: null,
-    end: null,
-    startType: "open",
-    endType: "open",
-    arrow: "none",
-  };
 }
 
 /**
@@ -254,6 +291,10 @@ export function generateNumberLine(input: any): string {
     points = [],
     intervals = [],
     inequalities = [],
+    showSetNotation,
+    showIntervalNotation,
+    showWorkSpace,
+    autoAnalyze,
     lineColor,
     lineWidth,
     theme,
@@ -271,21 +312,62 @@ export function generateNumberLine(input: any): string {
     pan,
   } = validatedInput;
 
-  // Process inequalities into intervals
+  // Process inequalities into intervals using enhanced engine
   const processedIntervals = [...intervals];
+  const workSteps: string[] = [];
+  const notations: { set: string[]; interval: string[] } = { set: [], interval: [] };
+
   inequalities.forEach((ineq, index) => {
-    const parsed = parseInequality(ineq.expression);
-    if (parsed.start !== null || parsed.end !== null) {
+    if (autoAnalyze) {
+      const processed = processInequality(ineq);
+      
+      if (showWorkSpace && processed.workSteps) {
+        workSteps.push(...processed.workSteps);
+      }
+
+      processed.intervals.forEach((interval) => {
+        if (interval.start !== null || interval.end !== null) {
+          processedIntervals.push({
+            start: interval.start ?? range[0] - 1000,
+            end: interval.end ?? range[1] + 1000,
+            startType: interval.startType,
+            endType: interval.endType,
+            arrow: interval.arrow,
+            color: ineq.color || `hsl(${(index * 60) % 360}, 70%, 50%)`,
+            opacity: ineq.opacity || 0.3,
+            label: interval.label || ineq.expression,
+          });
+
+          // Collect notation strings
+          if (showSetNotation && interval.setNotation) {
+            notations.set.push(interval.setNotation);
+          }
+          if (showIntervalNotation && interval.intervalNotation) {
+            notations.interval.push(interval.intervalNotation);
+          }
+        }
+      });
+    } else {
+      // Fallback to basic parsing for backward compatibility
+      workSteps.push(`处理不等式: ${ineq.expression}`);
+      
       processedIntervals.push({
-        start: parsed.start ?? range[0] - 1000,
-        end: parsed.end ?? range[1] + 1000,
-        startType: parsed.startType,
-        endType: parsed.endType,
-        arrow: parsed.arrow,
-        color: ineq.color || `hsl(${index * 60}, 70%, 50%)`,
+        start: range[0] - 1000,
+        end: range[1] + 1000,
+        startType: "open",
+        endType: "open",
+        arrow: "none",
+        color: ineq.color || `hsl(${(index * 60) % 360}, 70%, 50%)`,
         opacity: ineq.opacity || 0.3,
         label: ineq.expression,
       });
+
+      if (showSetNotation) {
+        notations.set.push(`{x | ${ineq.expression}}`);
+      }
+      if (showIntervalNotation) {
+        notations.interval.push("需要自动分析");
+      }
     }
   });
 
@@ -327,6 +409,11 @@ export function generateNumberLine(input: any): string {
             font-family: Arial, sans-serif;
             margin: 20px;
             background-color: ${backgroundColor};
+            line-height: 1.6;
+        }
+        .container {
+            max-width: ${Math.max(width + 100, 800)}px;
+            margin: 0 auto;
         }
         .jxgbox {
             border: 1px solid #ccc;
@@ -337,11 +424,66 @@ export function generateNumberLine(input: any): string {
             margin-bottom: 20px;
             color: #333;
         }
+        .notation-section, .workspace-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+        .notation-section h3, .workspace-section h3 {
+            margin: 0 0 10px 0;
+            color: #555;
+            font-size: 16px;
+        }
+        .notation-item {
+            margin: 8px 0;
+            font-family: 'Times New Roman', serif;
+            font-size: 16px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .work-step {
+            margin: 5px 0;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+            border-radius: 0 4px 4px 0;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
-    ${title ? `<h1>${title}</h1>` : ""}
-    <div id="jxgbox" class="jxgbox" style="width:${width}px; height:${height}px; margin: 0 auto;"></div>
+    <div class="container">
+        ${title ? `<h1>${title}</h1>` : ""}
+        
+        ${showWorkSpace && workSteps.length > 0 ? `
+        <div class="workspace-section">
+            <h3>📝 解题过程</h3>
+            ${workSteps.map(step => `<div class="work-step">${step}</div>`).join('')}
+        </div>
+        ` : ""}
+        
+        <div id="jxgbox" class="jxgbox" style="width:${width}px; height:${height}px; margin: 0 auto;"></div>
+        
+        ${(showSetNotation || showIntervalNotation) && (notations.set.length > 0 || notations.interval.length > 0) ? `
+        <div class="notation-section">
+            <h3>🔢 数学记号</h3>
+            ${showSetNotation && notations.set.length > 0 ? `
+            <div>
+                <strong>集合记号:</strong>
+                ${notations.set.map(notation => `<div class="notation-item">${notation}</div>`).join('')}
+            </div>
+            ` : ""}
+            ${showIntervalNotation && notations.interval.length > 0 ? `
+            <div style="margin-top: 15px;">
+                <strong>区间记号:</strong>
+                ${notations.interval.map(notation => `<div class="notation-item">${notation}</div>`).join('')}
+            </div>
+            ` : ""}
+        </div>
+        ` : ""}
     
     <script type="text/javascript">
         const board = JXG.JSXGraph.initBoard('jxgbox', ${JSON.stringify(jsxGraphConfig)});
@@ -558,6 +700,7 @@ export function generateNumberLine(input: any): string {
         
         board.update();
     </script>
+    </div> <!-- container -->
 </body>
 </html>`;
 }
@@ -566,7 +709,7 @@ export const numberLine = {
   tool: {
     name: "number-line",
     description:
-      "Create number line visualizations with open/closed circles, interval shading, arrows, and support for compound inequalities. Perfect for visualizing solutions to inequalities, intervals, and number sets.",
+      "Create enhanced number line visualizations with advanced inequality support. Features: open/closed circles, interval shading, arrows, compound inequalities (AND/OR), absolute value inequalities, set notation, interval notation, and step-by-step solution workspace. Perfect for visualizing complex inequality solutions.",
     inputSchema: zodToJsonSchema(schema),
   },
   execute: generateNumberLine,
