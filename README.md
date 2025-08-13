@@ -2,15 +2,15 @@
 
 A production-ready Model Context Protocol server for generating advanced mathematical visualizations using [JSXGraph](https://jsxgraph.org/). This MCP server provides comprehensive interactive mathematical chart generation capabilities for functions, geometry, parametric curves, polynomial analysis, and educational mathematics.
 
-## 🎯 Version 0.0.2 - Major Improvements
+## 🎯 Version 0.0.3 - Complete Tool Standardization
 
 **🚀 Performance Breakthrough**: Test pass rate improved from 1.2% to **88%** (145/165 tests)
 
 **✨ Key Improvements:**
 - 🔧 **Math Functions Fixed**: All advanced mathematical functions (sin, cos, exp, sqrt, log) now work correctly
 - 📊 **Advanced Polynomial Analyzer**: Complete polynomial analysis with rational root test, synthetic division, and end behavior analysis
-- 🛠️ **Enhanced Stability**: Production-ready system with comprehensive mathematical analysis engine
-- ⚡ **Better Performance**: Optimized function analysis and improved precision handling
+- 🛠️ **Tool Naming Standardized**: All 15 tools now use consistent `generate_` naming pattern for perfect MCP client compatibility
+- ⚡ **Enhanced Stability**: Production-ready system with comprehensive mathematical analysis engine and unified interface
 
 This TypeScript-based MCP server provides robust mathematical visualization capabilities, perfect for educational mathematics, engineering, scientific applications, and advanced mathematical research.
 

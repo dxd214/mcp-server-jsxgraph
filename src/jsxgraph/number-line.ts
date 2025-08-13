@@ -707,7 +707,7 @@ export function generateNumberLine(input: any): string {
 
 export const numberLine = {
   tool: {
-    name: "number-line",
+    name: "generate_number_line",
     description:
       "Create enhanced number line visualizations with advanced inequality support. Features: open/closed circles, interval shading, arrows, compound inequalities (AND/OR), absolute value inequalities, set notation, interval notation, and step-by-step solution workspace. Perfect for visualizing complex inequality solutions.",
     inputSchema: zodToJsonSchema(schema),

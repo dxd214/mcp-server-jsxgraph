@@ -811,7 +811,7 @@ export function generateFunctionProperties(input: any): string {
 // 导出工具配置
 export const functionProperties = {
   tool: {
-    name: "function-properties",
+    name: "generate_function_properties",
     description:
       "Create comprehensive function property analysis with visualization. Analyzes domain, range, monotonicity, concavity, extrema, asymptotes, inflection points, symmetry, and periodicity. Features interactive graphs with annotations, property tables, and step-by-step analysis. Perfect for in-depth function study.",
     inputSchema: zodToJsonSchema(schema),

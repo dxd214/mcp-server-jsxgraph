@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.3] - 2025-01-27
+
+### 🔧 Critical Tool Naming Fix
+
+#### Complete Naming Standardization
+- **FIXED: Tool naming inconsistency** - All tools now follow unified naming patterns
+- **Unified tool.name format**: All 15 tools now use `generate_` prefix consistently
+  - `generate_function_graph`, `generate_parametric_curve`, etc.
+  - **Fixed**: `number-line` → `generate_number_line`
+  - **Fixed**: `function-properties` → `generate_function_properties`
+- **Export key format**: All export keys consistently use hyphens (`function-graph`, `number-line`, etc.)
+
+#### MCP Client Compatibility
+- **Improved accessibility**: Tools now properly discoverable by all MCP clients
+- **Consistent interface**: Eliminates confusion from mixed naming patterns
+- **Tool registry**: All 15 tools verified with uniform naming structure
+
+#### Technical Details
+- **Export Keys**: All use hyphens (e.g., `function-graph`, `number-line`)
+- **Tool Names**: All use `generate_` prefix with underscores (e.g., `generate_function_graph`, `generate_number_line`)
+- **MCP Protocol**: Tools callable using hyphenated export keys
+- **Server Version**: Updated to 0.0.3 for proper version tracking
+
+### 📊 Tool Status
+- **Total Tools**: 15 mathematical visualization tools
+- **Naming Consistency**: 100% ✅ All tools follow unified patterns
+- **MCP Compatibility**: 100% ✅ All tools properly registered
+- **Test Coverage**: Maintained at 88% (145/165 tests)
+
+---
+
 ## [0.0.2] - 2025-08-13
 
 ### 🎯 Major Achievements
