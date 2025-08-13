@@ -17,7 +17,7 @@ const { values } = parseArgs({
     port: {
       type: "string",
       short: "p",
-      default: process.env.PORT || "1122",
+      default: "1122",
     },
     endpoint: {
       type: "string",
@@ -49,12 +49,6 @@ Options:
 
 // Run in the specified transport mode
 const transport = values.transport.toLowerCase();
-
-console.log('=== MCP Server JSXGraph Starting ===');
-console.log('Environment:', process.env.NODE_ENV || 'development');
-console.log('Port from ENV:', process.env.PORT);
-console.log('Port from args:', values.port);
-console.log('Transport:', transport);
 
 if (transport === "sse") {
   const port = Number.parseInt(values.port as string, 10);

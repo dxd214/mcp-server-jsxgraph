@@ -38,13 +38,6 @@ export const startHTTPStreamableServer = async (
     }
 
     const reqUrl = new URL(req.url, "http://localhost");
-    
-    // Add detailed logging for debugging
-    console.log(`[MCP] ${req.method} ${reqUrl.pathname} - Headers:`, {
-      'mcp-session-id': req.headers["mcp-session-id"],
-      'content-type': req.headers["content-type"],
-      'user-agent': req.headers["user-agent"]
-    });
 
     // Handle POST requests to endpoint
     if (req.method === "POST" && reqUrl.pathname === endpoint) {
@@ -57,7 +50,6 @@ export const startHTTPStreamableServer = async (
         let server: Server;
 
         const body = await getBody(req);
-        console.log(`[MCP] Request body:`, JSON.stringify(body, null, 2));
 
         /**
          * diagram: https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#sequence-diagram.
@@ -112,18 +104,7 @@ export const startHTTPStreamableServer = async (
 
           server.connect(transport);
 
-          // Handle the initialize request
-          try {
-            await transport.handleRequest(req, res, body);
-          } catch (error) {
-            console.error("Error handling initialize request:", error);
-            res.setHeader("Content-Type", "application/json");
-            res.writeHead(500).end(JSON.stringify({
-              error: { code: -32603, message: "Internal Server Error during initialization" },
-              id: (body as any).id || null,
-              jsonrpc: "2.0",
-            }));
-          }
+          await transport.handleRequest(req, res, body);
           return;
         } else {
           // Error if the server is not created but the request is not an initialize request.

@@ -20,9 +20,6 @@ lib
 esm
 build
 
-# Keep public directory for Vercel
-!public/
-
 # Test
 coverage
 
@@ -34,4 +31,3 @@ coverage
 package-lock.json
 pnpm-lock.yaml
 bun.lock
-.vercel

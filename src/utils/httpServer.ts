@@ -51,33 +51,8 @@ function handleCommonEndpoints(
     return true;
   }
 
-  // Handle root path - return MCP server info
-  if (req.method === "GET" && req.url === "/") {
-    res.setHeader("Content-Type", "application/json");
-    res.writeHead(200).end(JSON.stringify({
-      name: "JSXGraph MCP Server",
-      version: "0.0.1",
-      description: "A Model Context Protocol server for generating mathematical visualizations using JSXGraph",
-      endpoints: {
-        mcp: "/mcp",
-        sse: "/sse"
-      },
-      protocol: "MCP 1.0",
-      transport: "HTTP Streamable"
-    }));
-    return true;
-  }
-
   if (req.method === "GET" && req.url === "/health") {
-    res.setHeader("Content-Type", "application/json");
-    res.writeHead(200).end(JSON.stringify({
-      status: "healthy",
-      service: "MCP Server JSXGraph",
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      env: process.env.NODE_ENV || 'development'
-    }));
+    res.writeHead(200, { "Content-Type": "text/plain" }).end("OK");
     return true;
   }
 
@@ -166,10 +141,7 @@ export function createBaseHttpServer(
   setupCleanupHandlers(httpServer, handlers.cleanup);
 
   // Start listening and log server info
-  // Bind to 0.0.0.0 for Replit/cloud deployment compatibility
-  const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
-  httpServer.listen(port, host, () => {
-    console.log(`${handlers.serverType} listening on ${host}:${port}${endpoint}`);
+  httpServer.listen(port, () => {
     logServerStartup(handlers.serverType, port, endpoint);
   });
 
