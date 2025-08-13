@@ -14,3 +14,4 @@ export { equationSystem as "equation-system" } from "./equation-system";
 export { conicSection as "conic-section" } from "./conic-section";
 export { polynomialSteps as "polynomial-steps" } from "./polynomial-steps";
 export { numberLine as "number-line" } from "./number-line";
+export { functionProperties as "function-properties" } from "./function-properties";
