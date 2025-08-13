@@ -6,7 +6,7 @@ import process from "node:process";
 export function getVisRequestServer() {
   return (
     process.env.VIS_REQUEST_SERVER ||
-    "https://dxd-studio.alipay.com/api/gpt-vis"
+    "https://antv-studio.alipay.com/api/gpt-vis"
   );
 }
 
