@@ -1,38 +1,64 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "../utils";
 import {
-  JSXGraphThemeSchema,
+  BoundingBoxSchema,
+  JSXGraphAxisSchema,
   JSXGraphBackgroundColorSchema,
   JSXGraphGridSchema,
-  JSXGraphAxisSchema,
-  JSXGraphWidthSchema,
   JSXGraphHeightSchema,
+  JSXGraphThemeSchema,
   JSXGraphTitleSchema,
-  BoundingBoxSchema,
+  JSXGraphWidthSchema,
   KeepAspectRatioSchema,
+  PanSchema,
   ShowCopyrightSchema,
   ShowNavigationSchema,
   ZoomSchema,
-  PanSchema,
 } from "./jsxgraph-base";
 
 // Parametric curve data schema
 const ParametricCurveSchema = z.object({
-  xExpression: z.string().describe("X coordinate expression as function of t, e.g., 'Math.cos(t)', '3*Math.cos(t) - Math.cos(3*t)'"),
-  yExpression: z.string().describe("Y coordinate expression as function of t, e.g., 'Math.sin(t)', '3*Math.sin(t) - Math.sin(3*t)'"),
-  tMin: z.number().optional().default(0).describe("Minimum value of parameter t"),
-  tMax: z.number().optional().default(2 * Math.PI).describe("Maximum value of parameter t"),
-  color: z.string().optional().default("#0066cc").describe("Color of the curve"),
+  xExpression: z
+    .string()
+    .describe(
+      "X coordinate expression as function of t, e.g., 'Math.cos(t)', '3*Math.cos(t) - Math.cos(3*t)'",
+    ),
+  yExpression: z
+    .string()
+    .describe(
+      "Y coordinate expression as function of t, e.g., 'Math.sin(t)', '3*Math.sin(t) - Math.sin(3*t)'",
+    ),
+  tMin: z
+    .number()
+    .optional()
+    .default(0)
+    .describe("Minimum value of parameter t"),
+  tMax: z
+    .number()
+    .optional()
+    .default(2 * Math.PI)
+    .describe("Maximum value of parameter t"),
+  color: z
+    .string()
+    .optional()
+    .default("#0066cc")
+    .describe("Color of the curve"),
   strokeWidth: z.number().optional().default(2).describe("Width of the curve"),
   name: z.string().optional().describe("Name/label for the curve"),
-  dash: z.number().optional().default(0).describe("Dash style of the line (0=solid, 1=dotted, 2=dashed)"),
+  dash: z
+    .number()
+    .optional()
+    .default(0)
+    .describe("Dash style of the line (0=solid, 1=dotted, 2=dashed)"),
 });
 
 // Parametric curve input schema
 const schema = {
   curves: z
     .array(ParametricCurveSchema)
-    .describe("Array of parametric curves to plot. Each curve is defined by x(t) and y(t) expressions.")
+    .describe(
+      "Array of parametric curves to plot. Each curve is defined by x(t) and y(t) expressions.",
+    )
     .nonempty({ message: "At least one parametric curve is required." }),
   showTrace: z
     .boolean()
@@ -45,13 +71,19 @@ const schema = {
     .default(1)
     .describe("Speed of the trace animation (1 = normal speed)"),
   points: z
-    .array(z.object({
-      x: z.number().describe("X coordinate of the point"),
-      y: z.number().describe("Y coordinate of the point"),
-      name: z.string().optional().describe("Label for the point"),
-      color: z.string().optional().default("#ff0000").describe("Color of the point"),
-      size: z.number().optional().default(3).describe("Size of the point"),
-    }))
+    .array(
+      z.object({
+        x: z.number().describe("X coordinate of the point"),
+        y: z.number().describe("Y coordinate of the point"),
+        name: z.string().optional().describe("Label for the point"),
+        color: z
+          .string()
+          .optional()
+          .default("#ff0000")
+          .describe("Color of the point"),
+        size: z.number().optional().default(3).describe("Size of the point"),
+      }),
+    )
     .optional()
     .describe("Optional points to plot on the graph"),
   style: z

@@ -42,10 +42,7 @@
               "description": "Whether the point is visible"
             }
           },
-          "required": [
-            "x",
-            "y"
-          ]
+          "required": ["x", "y"]
         },
         "description": "Array of points to create. Points can be referenced by name in other elements.",
         "default": []
@@ -65,11 +62,7 @@
             },
             "type": {
               "type": "string",
-              "enum": [
-                "line",
-                "segment",
-                "ray"
-              ],
+              "enum": ["line", "segment", "ray"],
               "default": "segment",
               "description": "Type of line: line (infinite), segment (between points), or ray (from point1 through point2)"
             },
@@ -93,10 +86,7 @@
               "description": "Label for the line"
             }
           },
-          "required": [
-            "point1",
-            "point2"
-          ]
+          "required": ["point1", "point2"]
         },
         "description": "Array of lines, segments, or rays connecting points"
       },
@@ -137,9 +127,7 @@
               "description": "Width of the circle outline"
             }
           },
-          "required": [
-            "center"
-          ]
+          "required": ["center"]
         },
         "description": "Array of circles defined by center and radius or through-point"
       },
@@ -177,9 +165,7 @@
               "description": "Width of the polygon border"
             }
           },
-          "required": [
-            "vertices"
-          ]
+          "required": ["vertices"]
         },
         "description": "Array of polygons defined by their vertices"
       },
@@ -207,10 +193,7 @@
             },
             "type": {
               "type": "string",
-              "enum": [
-                "arc",
-                "sector"
-              ],
+              "enum": ["arc", "sector"],
               "default": "arc",
               "description": "Display as arc or filled sector"
             },
@@ -230,11 +213,7 @@
               "description": "Whether to show angle measurement"
             }
           },
-          "required": [
-            "point1",
-            "vertex",
-            "point2"
-          ]
+          "required": ["point1", "vertex", "point2"]
         },
         "description": "Array of angles to display and measure"
       },
@@ -260,10 +239,7 @@
                   "description": "Point through which perpendicular passes"
                 }
               },
-              "required": [
-                "line",
-                "throughPoint"
-              ]
+              "required": ["line", "throughPoint"]
             }
           },
           "parallel": {
@@ -280,10 +256,7 @@
                   "description": "Point through which parallel passes"
                 }
               },
-              "required": [
-                "line",
-                "throughPoint"
-              ]
+              "required": ["line", "throughPoint"]
             }
           },
           "midpoint": {
@@ -304,11 +277,7 @@
                   "description": "Name for the midpoint"
                 }
               },
-              "required": [
-                "point1",
-                "point2",
-                "name"
-              ]
+              "required": ["point1", "point2", "name"]
             }
           },
           "bisector": {
@@ -329,11 +298,7 @@
                   "description": "Second point of the angle"
                 }
               },
-              "required": [
-                "point1",
-                "vertex",
-                "point2"
-              ]
+              "required": ["point1", "vertex", "point2"]
             }
           }
         },
@@ -344,11 +309,7 @@
         "properties": {
           "theme": {
             "type": "string",
-            "enum": [
-              "default",
-              "dark",
-              "light"
-            ],
+            "enum": ["default", "dark", "light"],
             "default": "default",
             "description": "Set the theme for the math chart."
           },
@@ -392,12 +353,7 @@
         },
         "minItems": 4,
         "maxItems": 4,
-        "default": [
-          -10,
-          10,
-          10,
-          -10
-        ],
+        "default": [-10, 10, 10, -10],
         "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
       },
       "keepAspectRatio": {

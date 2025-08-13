@@ -20,11 +20,7 @@
                   },
                   "type": {
                     "type": "string",
-                    "enum": [
-                      "implicit",
-                      "explicit",
-                      "parametric"
-                    ],
+                    "enum": ["implicit", "explicit", "parametric"],
                     "default": "implicit",
                     "description": "Type of equation"
                   },
@@ -48,9 +44,7 @@
                     "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
                   }
                 },
-                "required": [
-                  "expression"
-                ]
+                "required": ["expression"]
               },
               "minItems": 2,
               "description": "System of equations to solve simultaneously"
@@ -65,9 +59,7 @@
               "description": "Label for the system"
             }
           },
-          "required": [
-            "equations"
-          ]
+          "required": ["equations"]
         },
         "description": "Array of equation systems to solve and visualize"
       },
@@ -103,11 +95,7 @@
           },
           "method": {
             "type": "string",
-            "enum": [
-              "newton",
-              "bisection",
-              "secant"
-            ],
+            "enum": ["newton", "bisection", "secant"],
             "default": "newton",
             "description": "Numerical method to use"
           }
@@ -170,9 +158,7 @@
               "description": "Whether to highlight the boundary"
             }
           },
-          "required": [
-            "systemIndex"
-          ]
+          "required": ["systemIndex"]
         },
         "description": "Regions defined by equation systems"
       },
@@ -233,11 +219,7 @@
         "properties": {
           "theme": {
             "type": "string",
-            "enum": [
-              "default",
-              "dark",
-              "light"
-            ],
+            "enum": ["default", "dark", "light"],
             "default": "default",
             "description": "Set the theme for the math chart."
           },
@@ -291,12 +273,7 @@
         },
         "minItems": 4,
         "maxItems": 4,
-        "default": [
-          -10,
-          10,
-          10,
-          -10
-        ],
+        "default": [-10, 10, 10, -10],
         "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
       },
       "keepAspectRatio": {

@@ -4,9 +4,9 @@
  */
 
 export interface AnimationConfig {
-  type: 'move' | 'rotate' | 'scale' | 'fade' | 'morph' | 'draw';
+  type: "move" | "rotate" | "scale" | "fade" | "morph" | "draw";
   duration?: number;
-  easing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce';
+  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "bounce";
   delay?: number;
 }
 

@@ -1,34 +1,44 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "../utils";
 import {
-  JSXGraphThemeSchema,
+  BoundingBoxSchema,
+  JSXGraphAxisSchema,
   JSXGraphBackgroundColorSchema,
   JSXGraphGridSchema,
-  JSXGraphAxisSchema,
-  JSXGraphWidthSchema,
   JSXGraphHeightSchema,
+  JSXGraphThemeSchema,
   JSXGraphTitleSchema,
-  BoundingBoxSchema,
+  JSXGraphWidthSchema,
   KeepAspectRatioSchema,
+  PanSchema,
   ShowCopyrightSchema,
   ShowNavigationSchema,
   ZoomSchema,
-  PanSchema,
 } from "./jsxgraph-base";
 
 // Vector field input schema
 const schema = {
   fieldFunction: z
     .object({
-      dx: z.string().describe("Expression for the x-component of the vector field as function of (x, y), e.g., '-y', 'x + y', 'Math.sin(x)'"),
-      dy: z.string().describe("Expression for the y-component of the vector field as function of (x, y), e.g., 'x', 'x - y', 'Math.cos(y)'"),
+      dx: z
+        .string()
+        .describe(
+          "Expression for the x-component of the vector field as function of (x, y), e.g., '-y', 'x + y', 'Math.sin(x)'",
+        ),
+      dy: z
+        .string()
+        .describe(
+          "Expression for the y-component of the vector field as function of (x, y), e.g., 'x', 'x - y', 'Math.cos(y)'",
+        ),
     })
     .describe("Vector field function F(x,y) = (dx, dy)"),
   density: z
     .number()
     .optional()
     .default(10)
-    .describe("Number of vectors to show in each direction (density of the field)"),
+    .describe(
+      "Number of vectors to show in each direction (density of the field)",
+    ),
   scale: z
     .number()
     .optional()
@@ -36,30 +46,71 @@ const schema = {
     .describe("Scale factor for vector lengths (0.1 to 2.0)"),
   arrowStyle: z
     .object({
-      color: z.string().optional().default("#0066cc").describe("Color of the vectors"),
-      strokeWidth: z.number().optional().default(1.5).describe("Width of the vector arrows"),
-      headSize: z.number().optional().default(5).describe("Size of the arrowheads"),
+      color: z
+        .string()
+        .optional()
+        .default("#0066cc")
+        .describe("Color of the vectors"),
+      strokeWidth: z
+        .number()
+        .optional()
+        .default(1.5)
+        .describe("Width of the vector arrows"),
+      headSize: z
+        .number()
+        .optional()
+        .default(5)
+        .describe("Size of the arrowheads"),
     })
     .optional()
     .describe("Styling options for the vector arrows"),
   streamlines: z
-    .array(z.object({
-      startX: z.number().describe("Starting x coordinate for the streamline"),
-      startY: z.number().describe("Starting y coordinate for the streamline"),
-      color: z.string().optional().default("#ff6600").describe("Color of the streamline"),
-      strokeWidth: z.number().optional().default(2).describe("Width of the streamline"),
-      steps: z.number().optional().default(100).describe("Number of integration steps"),
-    }))
+    .array(
+      z.object({
+        startX: z.number().describe("Starting x coordinate for the streamline"),
+        startY: z.number().describe("Starting y coordinate for the streamline"),
+        color: z
+          .string()
+          .optional()
+          .default("#ff6600")
+          .describe("Color of the streamline"),
+        strokeWidth: z
+          .number()
+          .optional()
+          .default(2)
+          .describe("Width of the streamline"),
+        steps: z
+          .number()
+          .optional()
+          .default(100)
+          .describe("Number of integration steps"),
+      }),
+    )
     .optional()
-    .describe("Optional streamlines (integral curves) to show the flow of the field"),
+    .describe(
+      "Optional streamlines (integral curves) to show the flow of the field",
+    ),
   singularPoints: z
-    .array(z.object({
-      x: z.number().describe("X coordinate of the singular point"),
-      y: z.number().describe("Y coordinate of the singular point"),
-      type: z.enum(["source", "sink", "saddle", "center"]).optional().describe("Type of singular point"),
-      color: z.string().optional().default("#ff0000").describe("Color of the singular point"),
-      size: z.number().optional().default(5).describe("Size of the point marker"),
-    }))
+    .array(
+      z.object({
+        x: z.number().describe("X coordinate of the singular point"),
+        y: z.number().describe("Y coordinate of the singular point"),
+        type: z
+          .enum(["source", "sink", "saddle", "center"])
+          .optional()
+          .describe("Type of singular point"),
+        color: z
+          .string()
+          .optional()
+          .default("#ff0000")
+          .describe("Color of the singular point"),
+        size: z
+          .number()
+          .optional()
+          .default(5)
+          .describe("Size of the point marker"),
+      }),
+    )
     .optional()
     .describe("Optional singular/critical points to highlight"),
   colorByMagnitude: z

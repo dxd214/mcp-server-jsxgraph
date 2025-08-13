@@ -3,7 +3,7 @@
  * 为所有JSXGraph图表提供统一的分步骤展示和动画控制能力
  */
 
-import { generateAnimationEngineCode } from './jsxgraph-animation-engine';
+import { generateAnimationEngineCode } from "./jsxgraph-animation-engine";
 
 export interface StepControllerConfig {
   enableSteps?: boolean;
@@ -11,7 +11,7 @@ export interface StepControllerConfig {
   playSpeed?: number;
   showControls?: boolean;
   animationDuration?: number;
-  animationEasing?: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out';
+  animationEasing?: "linear" | "ease-in" | "ease-out" | "ease-in-out";
 }
 
 export interface ElementTransition {
@@ -25,18 +25,20 @@ export interface ElementTransition {
 /**
  * 生成步骤控制器的JavaScript代码
  */
-export function generateStepControllerCode(config: StepControllerConfig = {}): string {
+export function generateStepControllerCode(
+  config: StepControllerConfig = {},
+): string {
   const {
     enableSteps = true,
     autoPlay = false,
     playSpeed = 3000,
     showControls = true,
     animationDuration = 800,
-    animationEasing = 'ease-in-out'
+    animationEasing = "ease-in-out",
   } = config;
 
   if (!enableSteps) {
-    return '';
+    return "";
   }
 
   // 先生成动画引擎代码
@@ -442,9 +444,11 @@ const StepController = (function() {
 /**
  * 生成步骤控制按钮的HTML代码
  */
-export function generateStepControlsHTML(config: StepControllerConfig = {}): string {
+export function generateStepControlsHTML(
+  config: StepControllerConfig = {},
+): string {
   if (!config.showControls) {
-    return '';
+    return "";
   }
 
   return `

@@ -1,39 +1,67 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "../utils";
 import {
-  JSXGraphThemeSchema,
+  BoundingBoxSchema,
+  JSXGraphAxisSchema,
   JSXGraphBackgroundColorSchema,
   JSXGraphGridSchema,
-  JSXGraphAxisSchema,
-  JSXGraphWidthSchema,
   JSXGraphHeightSchema,
+  JSXGraphThemeSchema,
   JSXGraphTitleSchema,
-  BoundingBoxSchema,
+  JSXGraphWidthSchema,
   KeepAspectRatioSchema,
+  PanSchema,
   ShowCopyrightSchema,
   ShowNavigationSchema,
   ZoomSchema,
-  PanSchema,
 } from "./jsxgraph-base";
 
 // Rational function schema
 const RationalFunctionSchema = z.object({
-  numerator: z.string().describe("Numerator polynomial expression, e.g., 'x^2 + 2*x + 1'"),
-  denominator: z.string().describe("Denominator polynomial expression, e.g., 'x - 1'"),
-  color: z.string().optional().default("#0066cc").describe("Color of the function curve"),
+  numerator: z
+    .string()
+    .describe("Numerator polynomial expression, e.g., 'x^2 + 2*x + 1'"),
+  denominator: z
+    .string()
+    .describe("Denominator polynomial expression, e.g., 'x - 1'"),
+  color: z
+    .string()
+    .optional()
+    .default("#0066cc")
+    .describe("Color of the function curve"),
   strokeWidth: z.number().optional().default(2).describe("Width of the curve"),
   name: z.string().optional().describe("Label for the function"),
-  dash: z.number().optional().default(0).describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
+  dash: z
+    .number()
+    .optional()
+    .default(0)
+    .describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
 });
 
 // Irrational function schema
 const IrrationalFunctionSchema = z.object({
-  expression: z.string().describe("Irrational function expression, e.g., 'Math.sqrt(x)', 'Math.cbrt(x^2 - 1)'"),
-  domain: z.array(z.number()).length(2).optional().describe("Domain restrictions [min, max]"),
-  color: z.string().optional().default("#009900").describe("Color of the function curve"),
+  expression: z
+    .string()
+    .describe(
+      "Irrational function expression, e.g., 'Math.sqrt(x)', 'Math.cbrt(x^2 - 1)'",
+    ),
+  domain: z
+    .array(z.number())
+    .length(2)
+    .optional()
+    .describe("Domain restrictions [min, max]"),
+  color: z
+    .string()
+    .optional()
+    .default("#009900")
+    .describe("Color of the function curve"),
   strokeWidth: z.number().optional().default(2).describe("Width of the curve"),
   name: z.string().optional().describe("Label for the function"),
-  dash: z.number().optional().default(0).describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
+  dash: z
+    .number()
+    .optional()
+    .default(0)
+    .describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
 });
 
 // Rational function input schema
@@ -80,7 +108,9 @@ const schema = {
     .boolean()
     .optional()
     .default(true)
-    .describe("Whether to highlight domain restrictions for irrational functions"),
+    .describe(
+      "Whether to highlight domain restrictions for irrational functions",
+    ),
   analyzeEndBehavior: z
     .boolean()
     .optional()
@@ -88,8 +118,16 @@ const schema = {
     .describe("Whether to show end behavior analysis"),
   factorization: z
     .object({
-      show: z.boolean().optional().default(false).describe("Whether to show factored form"),
-      simplify: z.boolean().optional().default(true).describe("Whether to simplify and cancel common factors"),
+      show: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe("Whether to show factored form"),
+      simplify: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe("Whether to simplify and cancel common factors"),
     })
     .optional()
     .describe("Factorization and simplification options"),
@@ -103,13 +141,27 @@ const schema = {
     .optional()
     .describe("X coordinates where to draw tangent lines"),
   shadeRegions: z
-    .array(z.object({
-      type: z.enum(["above", "below", "between"]).describe("Region type relative to function"),
-      functionIndex: z.number().describe("Index of the function to shade relative to"),
-      bounds: z.array(z.number()).length(2).optional().describe("X bounds [min, max]"),
-      color: z.string().optional().default("#0066cc").describe("Shade color"),
-      opacity: z.number().optional().default(0.2).describe("Shade opacity (0-1)"),
-    }))
+    .array(
+      z.object({
+        type: z
+          .enum(["above", "below", "between"])
+          .describe("Region type relative to function"),
+        functionIndex: z
+          .number()
+          .describe("Index of the function to shade relative to"),
+        bounds: z
+          .array(z.number())
+          .length(2)
+          .optional()
+          .describe("X bounds [min, max]"),
+        color: z.string().optional().default("#0066cc").describe("Shade color"),
+        opacity: z
+          .number()
+          .optional()
+          .default(0.2)
+          .describe("Shade opacity (0-1)"),
+      }),
+    )
     .optional()
     .describe("Regions to shade"),
   style: z

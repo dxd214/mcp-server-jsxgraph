@@ -1,19 +1,19 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "../utils";
 import {
-  JSXGraphThemeSchema,
+  BoundingBoxSchema,
+  JSXGraphAxisSchema,
   JSXGraphBackgroundColorSchema,
   JSXGraphGridSchema,
-  JSXGraphAxisSchema,
-  JSXGraphWidthSchema,
   JSXGraphHeightSchema,
+  JSXGraphThemeSchema,
   JSXGraphTitleSchema,
-  BoundingBoxSchema,
+  JSXGraphWidthSchema,
   KeepAspectRatioSchema,
+  PanSchema,
   ShowCopyrightSchema,
   ShowNavigationSchema,
   ZoomSchema,
-  PanSchema,
 } from "./jsxgraph-base";
 
 // Quadratic function schema
@@ -21,10 +21,18 @@ const QuadraticFunctionSchema = z.object({
   a: z.number().describe("Coefficient of x² (ax² + bx + c)"),
   b: z.number().describe("Coefficient of x (ax² + bx + c)"),
   c: z.number().describe("Constant term (ax² + bx + c)"),
-  color: z.string().optional().default("#0066cc").describe("Color of the parabola"),
+  color: z
+    .string()
+    .optional()
+    .default("#0066cc")
+    .describe("Color of the parabola"),
   strokeWidth: z.number().optional().default(2).describe("Width of the curve"),
   name: z.string().optional().describe("Label for the function"),
-  dash: z.number().optional().default(0).describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
+  dash: z
+    .number()
+    .optional()
+    .default(0)
+    .describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
 });
 
 // Quadratic analysis input schema
@@ -74,18 +82,32 @@ const schema = {
     .default(false)
     .describe("Whether to display the factorized form if applicable"),
   tangentLines: z
-    .array(z.object({
-      x: z.number().describe("X coordinate where to draw tangent"),
-      color: z.string().optional().default("#ff9900").describe("Color of tangent line"),
-    }))
+    .array(
+      z.object({
+        x: z.number().describe("X coordinate where to draw tangent"),
+        color: z
+          .string()
+          .optional()
+          .default("#ff9900")
+          .describe("Color of tangent line"),
+      }),
+    )
     .optional()
     .describe("Points where to draw tangent lines"),
   shadeRegion: z
     .object({
       type: z.enum(["above", "below", "between"]).describe("Region to shade"),
-      bounds: z.array(z.number()).length(2).optional().describe("X bounds for shading [min, max]"),
+      bounds: z
+        .array(z.number())
+        .length(2)
+        .optional()
+        .describe("X bounds for shading [min, max]"),
       color: z.string().optional().default("#0066cc").describe("Shade color"),
-      opacity: z.number().optional().default(0.2).describe("Shade opacity (0-1)"),
+      opacity: z
+        .number()
+        .optional()
+        .default(0.2)
+        .describe("Shade opacity (0-1)"),
     })
     .optional()
     .describe("Region to shade relative to the parabola"),

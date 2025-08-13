@@ -11,12 +11,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": [
-                "circle",
-                "ellipse",
-                "parabola",
-                "hyperbola"
-              ],
+              "enum": ["circle", "ellipse", "parabola", "hyperbola"],
               "description": "Type of conic section"
             },
             "center": {
@@ -69,10 +64,7 @@
             },
             "orientation": {
               "type": "string",
-              "enum": [
-                "horizontal",
-                "vertical"
-              ],
+              "enum": ["horizontal", "vertical"],
               "default": "vertical",
               "description": "Orientation of the conic"
             },
@@ -110,9 +102,7 @@
               "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
             }
           },
-          "required": [
-            "type"
-          ]
+          "required": ["type"]
         },
         "description": "Array of standard conic sections to plot"
       },
@@ -160,14 +150,7 @@
               "description": "Label for the conic"
             }
           },
-          "required": [
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F"
-          ]
+          "required": ["A", "B", "C", "D", "E", "F"]
         },
         "description": "Conic sections in general form: Ax² + Bxy + Cy² + Dx + Ey + F = 0"
       },
@@ -203,9 +186,7 @@
               "description": "Dash style (0=solid, 1=dotted, 2=dashed)"
             }
           },
-          "required": [
-            "coefficients"
-          ]
+          "required": ["coefficients"]
         },
         "description": "High-degree polynomial functions to plot"
       },
@@ -256,10 +237,7 @@
                   "description": "Y coordinate of tangent point"
                 }
               },
-              "required": [
-                "x",
-                "y"
-              ],
+              "required": ["x", "y"],
               "description": "Point where to draw tangent"
             },
             "conicIndex": {
@@ -267,9 +245,7 @@
               "description": "Index of conic to draw tangent to"
             }
           },
-          "required": [
-            "point"
-          ]
+          "required": ["point"]
         },
         "description": "Tangent lines to draw"
       },
@@ -323,11 +299,7 @@
         "properties": {
           "theme": {
             "type": "string",
-            "enum": [
-              "default",
-              "dark",
-              "light"
-            ],
+            "enum": ["default", "dark", "light"],
             "default": "default",
             "description": "Set the theme for the math chart."
           },
@@ -381,12 +353,7 @@
         },
         "minItems": 4,
         "maxItems": 4,
-        "default": [
-          -10,
-          10,
-          10,
-          -10
-        ],
+        "default": [-10, 10, 10, -10],
         "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
       },
       "keepAspectRatio": {

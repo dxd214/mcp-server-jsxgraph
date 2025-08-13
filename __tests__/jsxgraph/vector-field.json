@@ -16,10 +16,7 @@
             "description": "Expression for the y-component of the vector field as function of (x, y), e.g., 'x', 'x - y', 'Math.cos(y)'"
           }
         },
-        "required": [
-          "dx",
-          "dy"
-        ],
+        "required": ["dx", "dy"],
         "description": "Vector field function F(x,y) = (dx, dy)"
       },
       "density": {
@@ -82,10 +79,7 @@
               "description": "Number of integration steps"
             }
           },
-          "required": [
-            "startX",
-            "startY"
-          ]
+          "required": ["startX", "startY"]
         },
         "description": "Optional streamlines (integral curves) to show the flow of the field"
       },
@@ -104,12 +98,7 @@
             },
             "type": {
               "type": "string",
-              "enum": [
-                "source",
-                "sink",
-                "saddle",
-                "center"
-              ],
+              "enum": ["source", "sink", "saddle", "center"],
               "description": "Type of singular point"
             },
             "color": {
@@ -123,10 +112,7 @@
               "description": "Size of the point marker"
             }
           },
-          "required": [
-            "x",
-            "y"
-          ]
+          "required": ["x", "y"]
         },
         "description": "Optional singular/critical points to highlight"
       },
@@ -145,11 +131,7 @@
         "properties": {
           "theme": {
             "type": "string",
-            "enum": [
-              "default",
-              "dark",
-              "light"
-            ],
+            "enum": ["default", "dark", "light"],
             "default": "default",
             "description": "Set the theme for the math chart."
           },
@@ -203,12 +185,7 @@
         },
         "minItems": 4,
         "maxItems": 4,
-        "default": [
-          -10,
-          10,
-          10,
-          -10
-        ],
+        "default": [-10, 10, 10, -10],
         "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
       },
       "keepAspectRatio": {
@@ -279,9 +256,7 @@
         "description": "Pan configuration for the chart."
       }
     },
-    "required": [
-      "fieldFunction"
-    ],
+    "required": ["fieldFunction"],
     "$schema": "http://json-schema.org/draft-07/schema#"
   }
 }

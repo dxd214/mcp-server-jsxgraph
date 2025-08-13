@@ -48,7 +48,9 @@ export const BoundingBoxSchema = z
   .length(4)
   .optional()
   .default([-10, 10, 10, -10])
-  .describe("The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10].");
+  .describe(
+    "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10].",
+  );
 
 export const KeepAspectRatioSchema = z
   .boolean()

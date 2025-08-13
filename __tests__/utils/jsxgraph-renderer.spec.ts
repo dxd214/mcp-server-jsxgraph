@@ -1,6 +1,9 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { renderJSXGraph, JSXGraphConfig } from "../../src/utils/jsxgraph-renderer";
 import puppeteer from "puppeteer";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  type JSXGraphConfig,
+  renderJSXGraph,
+} from "../../src/utils/jsxgraph-renderer";
 
 // Mock puppeteer
 vi.mock("puppeteer");
@@ -202,17 +205,17 @@ describe("JSXGraph Renderer", () => {
       await renderJSXGraph(config);
 
       const htmlContent = mockPage.setContent.mock.calls[0][0];
-      
+
       // Check for JSXGraph CDN links
       expect(htmlContent).toContain("jsxgraph.css");
       expect(htmlContent).toContain("jsxgraphcore.js");
-      
+
       // Check for proper HTML structure
       expect(htmlContent).toContain('<div id="jxgbox"></div>');
       expect(htmlContent).toContain("width: 800px");
       expect(htmlContent).toContain("height: 600px");
       expect(htmlContent).toContain("background-color: #f0f0f0");
-      
+
       // Check for JSXGraph initialization
       expect(htmlContent).toContain("JXG.JSXGraph.initBoard");
       expect(htmlContent).toContain('"boundingbox":[-10,10,10,-10]');
@@ -243,14 +246,14 @@ describe("JSXGraph Renderer", () => {
       await renderJSXGraph(config);
 
       const htmlContent = mockPage.setContent.mock.calls[0][0];
-      
+
       // Check for derivative
       expect(htmlContent).toContain("JXG.Math.Numerics.D");
-      
+
       // Check for integral
       expect(htmlContent).toContain("integral");
       expect(htmlContent).toContain("[-2, 2]");
-      
+
       // Check for tangent
       expect(htmlContent).toContain("tangent");
       expect(htmlContent).toContain("glider");
@@ -279,10 +282,10 @@ describe("JSXGraph Renderer", () => {
       await renderJSXGraph(config);
 
       const htmlContent = mockPage.setContent.mock.calls[0][0];
-      
+
       // Check for slider (used for animation)
       expect(htmlContent).toContain("slider");
-      
+
       // Check for trace point
       expect(htmlContent).toContain("tracePoint");
     });
@@ -298,16 +301,10 @@ describe("JSXGraph Renderer", () => {
             { x: 0, y: 0, name: "A" },
             { x: 5, y: 0, name: "B" },
           ],
-          lines: [
-            { point1: "A", point2: "B", type: "line" },
-          ],
+          lines: [{ point1: "A", point2: "B", type: "line" }],
           construction: {
-            perpendicular: [
-              { line: "A-B", throughPoint: "A" },
-            ],
-            midpoint: [
-              { point1: "A", point2: "B", name: "M" },
-            ],
+            perpendicular: [{ line: "A-B", throughPoint: "A" }],
+            midpoint: [{ point1: "A", point2: "B", name: "M" }],
           },
         },
       };
@@ -315,10 +312,10 @@ describe("JSXGraph Renderer", () => {
       await renderJSXGraph(config);
 
       const htmlContent = mockPage.setContent.mock.calls[0][0];
-      
+
       // Check for perpendicular
       expect(htmlContent).toContain("perpendicular");
-      
+
       // Check for midpoint
       expect(htmlContent).toContain("midpoint");
     });
@@ -350,14 +347,14 @@ describe("JSXGraph Renderer", () => {
       await renderJSXGraph(config);
 
       const htmlContent = mockPage.setContent.mock.calls[0][0];
-      
+
       // Check for streamline code
       expect(htmlContent).toContain("streamPoints");
-      
+
       // Check for magnitude-based coloring
       expect(htmlContent).toContain("hsl");
       expect(htmlContent).toContain("magnitude");
-      
+
       // Check for legend
       expect(htmlContent).toContain("Magnitude");
     });

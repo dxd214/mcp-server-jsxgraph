@@ -32,7 +32,15 @@
     "access": "public"
   },
   "files": ["build"],
-  "keywords": ["jsxgraph", "mcp", "mathematical-visualization", "geometry", "functions", "parametric-curves", "mathematics"],
+  "keywords": [
+    "jsxgraph",
+    "mcp",
+    "mathematical-visualization",
+    "geometry",
+    "functions",
+    "parametric-curves",
+    "mathematics"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/dxd214/mcp-server-jsxgraph"

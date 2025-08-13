@@ -11,10 +11,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "enum": [
-                "exponential",
-                "logarithm"
-              ],
+              "enum": ["exponential", "logarithm"],
               "description": "Type of function"
             },
             "base": {
@@ -70,9 +67,7 @@
               "description": "Domain [min, max]"
             }
           },
-          "required": [
-            "type"
-          ]
+          "required": ["type"]
         },
         "minItems": 1,
         "description": "Array of exponential and logarithmic functions to plot"
@@ -112,9 +107,7 @@
               "description": "Show function values at this point"
             }
           },
-          "required": [
-            "x"
-          ]
+          "required": ["x"]
         },
         "description": "Points to compare function values"
       },
@@ -153,11 +146,7 @@
           },
           "axis": {
             "type": "string",
-            "enum": [
-              "x",
-              "y",
-              "both"
-            ],
+            "enum": ["x", "y", "both"],
             "default": "y",
             "description": "Which axis to use log scale"
           }
@@ -192,10 +181,7 @@
               "description": "Size of the point"
             }
           },
-          "required": [
-            "x",
-            "y"
-          ]
+          "required": ["x", "y"]
         },
         "description": "Special points to highlight (e.g., (0,1) for exponentials)"
       },
@@ -211,11 +197,7 @@
         "properties": {
           "theme": {
             "type": "string",
-            "enum": [
-              "default",
-              "dark",
-              "light"
-            ],
+            "enum": ["default", "dark", "light"],
             "default": "default",
             "description": "Set the theme for the math chart."
           },
@@ -269,12 +251,7 @@
         },
         "minItems": 4,
         "maxItems": 4,
-        "default": [
-          -10,
-          10,
-          10,
-          -10
-        ],
+        "default": [-10, 10, 10, -10],
         "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
       },
       "keepAspectRatio": {
@@ -345,9 +322,7 @@
         "description": "Pan configuration for the chart."
       }
     },
-    "required": [
-      "functions"
-    ],
+    "required": ["functions"],
     "$schema": "http://json-schema.org/draft-07/schema#"
   }
 }
