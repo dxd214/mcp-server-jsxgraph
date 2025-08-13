@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.2] - 2025-01-27
+## [0.0.2] - 2025-08-13
 
 ### 🎯 Major Achievements
 - **MASSIVE IMPROVEMENT**: Test pass rate increased from 1.2% to 88% (145/165 tests)
@@ -85,7 +85,7 @@ This release transforms the system from a 1.2% pass rate unstable prototype to a
 
 ---
 
-## [0.0.1] - 2024-12-XX
+## [0.0.1] - 2025-8-11
 
 ### ✨ Initial Release
 - Basic JSXGraph MCP server implementation
