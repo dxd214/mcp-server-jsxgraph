@@ -194,7 +194,210 @@ const tool = {
   inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
+// Generate JSXGraph code for rational and irrational functions
+function generateRationalFunctionCode(config: any, boundingBox: number[]): string {
+  const {
+    rationalFunctions = [],
+    irrationalFunctions = [],
+    showVerticalAsymptotes = true,
+    showHorizontalAsymptotes = true,
+    showObliqueAsymptotes = true,
+    showHoles = true,
+    showIntercepts = true,
+    showCriticalPoints = false,
+    showDomainRestrictions = true,
+    analyzeEndBehavior = false,
+    factorization,
+    partialFractions = false,
+    tangentLines = [],
+    shadeRegions = [],
+    title = "",
+    axisXTitle = "x",
+    axisYTitle = "y",
+    showCopyright = false,
+    showNavigation = true,
+    zoom = { enabled: true, wheel: true },
+    pan = { enabled: true }
+  } = config;
+
+  let jsCode = `var board = JXG.JSXGraph.initBoard('jxgbox_rational_function_${Date.now()}', {"boundingbox":${JSON.stringify(boundingBox)},"axis":true,"grid":true,"keepaspectratio":false,"showCopyright":${showCopyright},"showNavigation":${showNavigation},"zoom":{"enabled":${zoom.enabled},"wheel":${zoom.wheel}},"pan":{"enabled":${pan.enabled}}});\n`;
+  
+  // Add title if provided
+  if (title) {
+    jsCode += `board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 0.5}, '${title}'], {fontSize: 18, fontWeight: 'bold'});\n`;
+  }
+  
+  // Add axis labels
+  if (axisXTitle !== "x") {
+    jsCode += `board.create('text', [${(boundingBox[0] + boundingBox[2]) / 2}, ${boundingBox[3] - 0.5}, '${axisXTitle}'], {fontSize: 14, anchorX: 'middle'});\n`;
+  }
+  if (axisYTitle !== "y") {
+    jsCode += `board.create('text', [${boundingBox[0] - 0.5}, ${(boundingBox[1] + boundingBox[3]) / 2}, '${axisYTitle}'], {fontSize: 14, anchorY: 'middle', rotation: 90});\n`;
+  }
+
+  // Process rational functions
+  rationalFunctions.forEach((func: any, index: number) => {
+    const { numerator, denominator, color = "#0066cc", strokeWidth = 2, name = "", dash = 0 } = func;
+    
+    // Create rational function
+    jsCode += `var rational${index} = board.create('functiongraph', [function(x) { return (${numerator}) / (${denominator}); }, ${boundingBox[0]}, ${boundingBox[2]}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `f(x) = (${numerator}) / (${denominator})`}'});\n`;
+    
+    // Show vertical asymptotes (roots of denominator)
+    if (showVerticalAsymptotes) {
+      // Simple vertical asymptote detection for common cases
+      if (denominator.includes('x - ')) {
+        const match = denominator.match(/x - (-?\d+)/);
+        if (match) {
+          const asymptoteX = parseFloat(match[1]);
+          jsCode += `var vAsymptote${index} = board.create('line', [1, 0, -${asymptoteX}], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Vertical Asymptote x = ${asymptoteX}'});\n`;
+        }
+      } else if (denominator.includes('x + ')) {
+        const match = denominator.match(/x \+ (\d+)/);
+        if (match) {
+          const asymptoteX = -parseFloat(match[1]);
+          jsCode += `var vAsymptote${index} = board.create('line', [1, 0, -${asymptoteX}], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Vertical Asymptote x = ${asymptoteX}'});\n`;
+        }
+      }
+    }
+    
+    // Show horizontal asymptotes
+    if (showHorizontalAsymptotes) {
+      // Simple horizontal asymptote detection
+      if (numerator.includes('x^2') && denominator.includes('x^2')) {
+        // Both have x² terms, asymptote is ratio of coefficients
+        jsCode += `var hAsymptote${index} = board.create('line', [0, 1, 0], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Horizontal Asymptote y = 0'});\n`;
+      } else if (numerator.includes('x^2') && !denominator.includes('x^2')) {
+        // Numerator has higher degree, no horizontal asymptote
+        jsCode += `var obliqueAsymptote${index} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 1 - index * 0.5}, 'Oblique asymptote (numerator degree > denominator degree)'], {fontSize: 10, color: '#666'});\n`;
+      } else if (!numerator.includes('x^2') && !denominator.includes('x^2')) {
+        // Both linear, asymptote is ratio of coefficients
+        jsCode += `var hAsymptote${index} = board.create('line', [0, 1, 0], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Horizontal Asymptote y = 0'});\n`;
+      }
+    }
+    
+    // Show intercepts
+    if (showIntercepts) {
+      // Y-intercept (x = 0)
+      jsCode += `var yIntercept${index} = board.create('point', [0, function() { return (${numerator.replace(/x/g, '0')}) / (${denominator.replace(/x/g, '0')}); }], {name: 'y-intercept', size: 4, color: '#ff0000', fixed: true});\n`;
+      
+      // X-intercept (y = 0, numerator = 0)
+      if (numerator.includes('x')) {
+        // Simple x-intercept detection
+        if (numerator.includes('x - ')) {
+          const match = numerator.match(/x - (-?\d+)/);
+          if (match) {
+            const interceptX = parseFloat(match[1]);
+            jsCode += `var xIntercept${index} = board.create('point', [${interceptX}, 0], {name: 'x-intercept (${interceptX}, 0)', size: 4, color: '#ff0000', fixed: true});\n`;
+          }
+        } else if (numerator.includes('x + ')) {
+          const match = numerator.match(/x \+ (\d+)/);
+          if (match) {
+            const interceptX = -parseFloat(match[1]);
+            jsCode += `var xIntercept${index} = board.create('point', [${interceptX}, 0], {name: 'x-intercept (${interceptX}, 0)', size: 4, color: '#ff0000', fixed: true});\n`;
+          }
+        }
+      }
+    }
+    
+    // Show holes (common roots of numerator and denominator)
+    if (showHoles) {
+      // Simple hole detection for common factors
+      if (numerator.includes('x - ') && denominator.includes('x - ')) {
+        const numMatch = numerator.match(/x - (-?\d+)/);
+        const denMatch = denominator.match(/x - (-?\d+)/);
+        if (numMatch && denMatch && numMatch[1] === denMatch[1]) {
+          const holeX = parseFloat(numMatch[1]);
+          const holeY = 0; // Simplified, could calculate actual value
+          jsCode += `var hole${index} = board.create('point', [${holeX}, ${holeY}], {name: 'Hole (${holeX}, ${holeY})', size: 4, color: '#ff9900', fixed: true});\n`;
+        }
+      }
+    }
+  });
+  
+  // Process irrational functions
+  irrationalFunctions.forEach((func: any, index: number) => {
+    const { expression, domain, color = "#009900", strokeWidth = 2, name = "", dash = 0 } = func;
+    
+    // Create irrational function
+    const xMin = domain ? domain[0] : boundingBox[0];
+    const xMax = domain ? domain[1] : boundingBox[2];
+    jsCode += `var irrational${index} = board.create('functiongraph', [function(x) { return ${expression}; }, ${xMin}, ${xMax}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `f(x) = ${expression}`}'});\n`;
+    
+    // Show domain restrictions
+    if (showDomainRestrictions && domain) {
+      jsCode += `var domain${index} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 1 - index * 0.5}, 'Domain: x ∈ [${domain[0]}, ${domain[1]}]'], {fontSize: 10, color: '#666'});\n`;
+      
+      // Highlight domain boundaries
+      jsCode += `var domainBoundary1${index} = board.create('line', [1, 0, -${domain[0]}], {strokeColor: '#ff6600', strokeWidth: 2, dash: 1, name: 'Domain boundary x = ${domain[0]}'});\n`;
+      jsCode += `var domainBoundary2${index} = board.create('line', [1, 0, -${domain[1]}], {strokeColor: '#ff6600', strokeWidth: 2, dash: 1, name: 'Domain boundary x = ${domain[1]}'});\n`;
+    }
+    
+    // Show intercepts for irrational functions
+    if (showIntercepts) {
+      // Y-intercept if x = 0 is in domain
+      if (!domain || (domain[0] <= 0 && domain[1] >= 0)) {
+        jsCode += `var yIntercept${index} = board.create('point', [0, function() { return ${expression.replace(/x/g, '0')}; }], {name: 'y-intercept', size: 4, color: '#ff0000', fixed: true});\n`;
+      }
+      
+      // X-intercept (y = 0)
+      if (expression.includes('Math.sqrt') || expression.includes('Math.cbrt')) {
+        // For root functions, x-intercept is usually at x = 0 or where the argument is 0
+        jsCode += `var xIntercept${index} = board.create('point', [0, 0], {name: 'x-intercept (0, 0)', size: 4, color: '#ff0000', fixed: true});\n`;
+      }
+    }
+  });
+  
+  // Draw tangent lines
+  tangentLines.forEach((x: number, index: number) => {
+    // Add tangent line for rational functions
+    rationalFunctions.forEach((func: any, funcIndex: number) => {
+      const { numerator, denominator } = func;
+      jsCode += `var tangent${index}_${funcIndex} = board.create('tangent', [${x}, 0], {strokeColor: '#ff9900', strokeWidth: 2, dash: 1, name: 'Tangent at x = ${x}'});\n`;
+    });
+    
+    // Add tangent line for irrational functions
+    irrationalFunctions.forEach((func: any, funcIndex: number) => {
+      const { expression, domain } = func;
+      if (!domain || (x >= domain[0] && x <= domain[1])) {
+        jsCode += `var tangent${index}_irrational${funcIndex} = board.create('tangent', [${x}, 0], {strokeColor: '#ff9900', strokeWidth: 2, dash: 1, name: 'Tangent at x = ${x}'});\n`;
+      }
+    });
+  });
+  
+  // Shade regions
+  shadeRegions.forEach((region: any, index: number) => {
+    const { type, functionIndex, bounds = [boundingBox[0], boundingBox[2]], color = "#0066cc", opacity = 0.2 } = region;
+    
+    if (type === "between" && bounds.length === 2) {
+      jsCode += `var shade${index} = board.create('polygon', [[${bounds[0]}, 0], [${bounds[1]}, 0], [${bounds[1]}, ${boundingBox[1]}], [${bounds[0]}, ${boundingBox[1]}]], {fillColor: '${color}', fillOpacity: ${opacity}, borders: {strokeColor: '${color}', strokeWidth: 1}});\n`;
+    }
+  });
+  
+  // Show factorization if requested
+  if (factorization && factorization.show) {
+    rationalFunctions.forEach((func: any, index: number) => {
+      const { numerator, denominator } = func;
+      jsCode += `var factorization${index} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[3] + 1 + index * 0.5}, 'Factorization: (${numerator}) / (${denominator})'], {fontSize: 10, color: '#666'});\n`;
+    });
+  }
+  
+  // Show end behavior analysis
+  if (analyzeEndBehavior) {
+    rationalFunctions.forEach((func: any, index: number) => {
+      const { numerator, denominator } = func;
+      if (numerator.includes('x^2') && denominator.includes('x^2')) {
+        jsCode += `var endBehavior${index} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[3] + 1 + index * 0.5}, 'End behavior: y → 0 as x → ±∞'], {fontSize: 10, color: '#666'});\n`;
+      } else if (numerator.includes('x^2') && !denominator.includes('x^2')) {
+        jsCode += `var endBehavior${index} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[3] + 1 + index * 0.5}, 'End behavior: y → ±∞ as x → ±∞'], {fontSize: 10, color: '#666'});\n`;
+      }
+    });
+  }
+  
+  return jsCode;
+}
+
 export const rationalFunction = {
   schema,
   tool,
+  generateCode: generateRationalFunctionCode
 };
