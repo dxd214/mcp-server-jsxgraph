@@ -13,6 +13,4 @@ export { rationalFunction as "rational-function" } from "./rational-function";
 export { equationSystem as "equation-system" } from "./equation-system";
 export { conicSection as "conic-section" } from "./conic-section";
 export { polynomialSteps as "polynomial-steps" } from "./polynomial-steps";
-export { polynomialComplete as "polynomial-complete" } from "./polynomial-complete";
-export { numberLine as "number-line" } from "./number-line";
-export { functionProperties as "function-properties" } from "./function-properties";
+export { numberLineInequality as "number-line-inequality" } from "./number-line-inequality";

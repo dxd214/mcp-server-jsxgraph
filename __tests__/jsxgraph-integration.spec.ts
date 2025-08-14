@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { callTool } from "../src/utils/callTool";
 import * as jsxgraphRenderer from "../src/utils/jsxgraph-renderer";
 
@@ -17,10 +17,7 @@ vi.mock("../src/utils/generate", () => ({
 describe("JSXGraph Integration Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Mock renderJSXGraph to return a base64 image
-    vi.mocked(jsxgraphRenderer.renderJSXGraph).mockResolvedValue(
-      "data:image/png;base64,mock-jsxgraph-image",
-    );
+    // Note: Tests now expect JavaScript code instead of rendered images
   });
 
   afterEach(() => {
@@ -42,27 +39,13 @@ describe("JSXGraph Integration Tests", () => {
         title: "Sine Function",
       });
 
-      expect(result.content).toEqual([
-        {
-          type: "text",
-          text: "data:image/png;base64,mock-jsxgraph-image",
-        },
-      ]);
+      expect(result.content).toBeDefined();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toContain("JSXGraph.initBoard");
+      expect(result.content[0].text).toContain("Math.sin(x)");
 
-      expect(jsxgraphRenderer.renderJSXGraph).toHaveBeenCalledWith({
-        type: "function",
-        width: 800,
-        height: 600,
-        boundingBox: [-10, 10, 10, -10],
-        config: expect.objectContaining({
-          functions: expect.arrayContaining([
-            expect.objectContaining({
-              expression: "Math.sin(x)",
-            }),
-          ]),
-          title: "Sine Function",
-        }),
-      });
+      // JSXGraph renderer is no longer called - code is returned directly
     });
 
     it("should handle multiple functions with derivatives and integrals", async () => {
@@ -82,7 +65,7 @@ describe("JSXGraph Integration Tests", () => {
         expect.objectContaining({
           type: "function",
           boundingBox: [-5, 5, 5, -5],
-        }),
+        })
       );
     });
   });
@@ -116,7 +99,7 @@ describe("JSXGraph Integration Tests", () => {
             ]),
             showTrace: true,
           }),
-        }),
+        })
       );
     });
   });
@@ -134,7 +117,9 @@ describe("JSXGraph Integration Tests", () => {
           { point1: "B", point2: "C", type: "segment" },
           { point1: "C", point2: "A", type: "segment" },
         ],
-        angles: [{ point1: "B", vertex: "A", point2: "C", radius: 30 }],
+        angles: [
+          { point1: "B", vertex: "A", point2: "C", radius: 30 },
+        ],
       });
 
       expect(result.content[0].text).toContain("data:image/png;base64");
@@ -146,7 +131,7 @@ describe("JSXGraph Integration Tests", () => {
               expect.objectContaining({ x: 0, y: 0, name: "A" }),
             ]),
           }),
-        }),
+        })
       );
     });
   });
@@ -174,7 +159,7 @@ describe("JSXGraph Integration Tests", () => {
             },
             colorByMagnitude: true,
           }),
-        }),
+        })
       );
     });
   });
@@ -198,7 +183,7 @@ describe("JSXGraph Integration Tests", () => {
               expect.objectContaining({ a: 2, b: 1, c: 5 }),
             ]),
           }),
-        }),
+        })
       );
     });
 
@@ -237,7 +222,7 @@ describe("JSXGraph Integration Tests", () => {
               expect.objectContaining({ a: 1, b: -2, c: -3 }),
             ]),
           }),
-        }),
+        })
       );
     });
   });
@@ -384,7 +369,7 @@ describe("JSXGraph Integration Tests", () => {
               }),
             ]),
           }),
-        }),
+        })
       );
     });
   });
@@ -396,19 +381,19 @@ describe("JSXGraph Integration Tests", () => {
           // Missing required 'functions' field
           width: 800,
           height: 600,
-        }),
+        })
       ).rejects.toThrow(/Invalid parameters/);
     });
 
     it("should handle renderer errors", async () => {
       vi.mocked(jsxgraphRenderer.renderJSXGraph).mockRejectedValue(
-        new Error("Renderer failed"),
+        new Error("Renderer failed")
       );
 
       await expect(
         callTool("generate_function_graph", {
           functions: [{ expression: "x^2" }],
-        }),
+        })
       ).rejects.toThrow(/Failed to generate chart.*Renderer failed/);
     });
   });

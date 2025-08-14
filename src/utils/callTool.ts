@@ -1,13 +1,8 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import * as Charts from "../jsxgraph";
-import {
-  type JSXGraphConfig,
-  generateJSXGraphCode,
-  generatePolynomialStepsCode,
-  replaceGraphIdPlaceholder,
-} from "./jsxgraph-code-generator";
 import { ValidateError } from "./validator";
+import { generateJSXGraphCode, generatePolynomialStepsCode, JSXGraphConfig, replaceGraphIdPlaceholder } from "./jsxgraph-code-generator";
 
 // JSXGraph chart type mapping
 const CHART_TYPE_MAP = {
@@ -23,9 +18,7 @@ const CHART_TYPE_MAP = {
   generate_equation_system: "equation-system",
   generate_conic_section: "conic-section",
   generate_polynomial_steps: "polynomial-steps",
-  generate_polynomial_complete: "polynomial-complete",
-  generate_number_line: "number-line",
-  generate_function_properties: "function-properties",
+  generate_number_line_inequality: "number-line-inequality",
 } as const;
 
 // JSXGraph chart types
@@ -42,9 +35,7 @@ const JSXGRAPH_CHARTS = new Set([
   "equation-system",
   "conic-section",
   "polynomial-steps",
-  "polynomial-complete",
-  "number-line",
-  "function-properties",
+  "number-line-inequality",
 ]);
 
 /**
@@ -63,10 +54,11 @@ export async function callTool(tool: string, args: object = {}) {
   try {
     // Validate input using Zod before sending to API.
     // Select the appropriate schema based on the chart type.
-    const chartModule = Charts[chartType] as any;
-    if (chartModule && chartModule.schema) {
+    const schema = Charts[chartType].schema;
+
+    if (schema) {
       // Use safeParse instead of parse and try-catch.
-      const result = z.object(chartModule.schema).safeParse(args);
+      const result = z.object(schema).safeParse(args);
       if (!result.success) {
         throw new McpError(
           ErrorCode.InvalidParams,
@@ -78,16 +70,16 @@ export async function callTool(tool: string, args: object = {}) {
     // Check if it's a JSXGraph chart
     if (JSXGRAPH_CHARTS.has(chartType)) {
       let jsCode: string;
-
+      
       // Generate unique container ID based on chart type and timestamp
-      const containerId = `jxgbox_${chartType.replace(/-/g, "_")}_${Date.now()}`;
-
-      // Special handling for charts that generate their own HTML
+      const containerId = `jxgbox_${chartType.replace(/-/g, '_')}_${Date.now()}`;
+      
+      // Special handling for polynomial-steps which has its own generator
       if (chartType === "polynomial-steps") {
-        // For step-by-step visualization, return JS code snippet with step control logic (no HTML template)
+        // 对于步骤式可视化，返回包含步骤控制逻辑的JS代码片段（不返回HTML模板）
         jsCode = generatePolynomialStepsCode({
           ...(args as any),
-          containerId: containerId,
+          containerId: containerId
         });
       } else {
         // Map JSXGraph chart types to renderer types
@@ -103,8 +95,7 @@ export async function callTool(tool: string, args: object = {}) {
           "rational-function": "rational-function",
           "equation-system": "equation-system",
           "conic-section": "conic-section",
-          "number-line": "number-line",
-          "function-properties": "function-properties",
+          "number-line-inequality": "number-line-inequality",
         };
 
         const jsxGraphConfig: JSXGraphConfig = {
@@ -114,13 +105,13 @@ export async function callTool(tool: string, args: object = {}) {
           boundingBox: (args as any).boundingBox || [-10, 10, 10, -10],
           config: args,
           containerId: containerId,
-          pure: true, // Other JSXGraph charts return pure code snippets
+          pure: true  // 其他JSXGraph图表仍返回纯净代码片段
         };
 
         jsCode = generateJSXGraphCode(jsxGraphConfig);
       }
-
-      // Only return JavaScript code snippet, no HTML template
+      
+      // 只返回JavaScript代码片段，不返回HTML模板
       return {
         content: [
           {
@@ -136,6 +127,7 @@ export async function callTool(tool: string, args: object = {}) {
       ErrorCode.InternalError,
       `Non-JSXGraph chart type not supported: ${chartType}`,
     );
+
 
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   } catch (error: any) {
@@ -156,12 +148,12 @@ export async function callTool(tool: string, args: object = {}) {
  * @param options - Options for placeholder handling
  */
 export async function callToolWithPlaceholder(
-  tool: string,
+  tool: string, 
   args: any,
   options: {
     useGraphIdPlaceholder?: boolean;
     customContainerId?: string;
-  } = {},
+  } = {}
 ): Promise<any> {
   const { useGraphIdPlaceholder = false, customContainerId } = options;
   const chartType = CHART_TYPE_MAP[tool as keyof typeof CHART_TYPE_MAP];
@@ -173,17 +165,15 @@ export async function callToolWithPlaceholder(
   // Check if it's a JSXGraph chart
   if (JSXGRAPH_CHARTS.has(chartType)) {
     let jsCode: string;
-
+    
     // Generate container ID
-    const actualContainerId =
-      customContainerId ||
-      `jxgbox_${chartType.replace(/-/g, "_")}_${Date.now()}`;
-
+    const actualContainerId = customContainerId || `jxgbox_${chartType.replace(/-/g, '_')}_${Date.now()}`;
+    
     try {
       // Validate input using Zod
-      const chartModule = Charts[chartType] as any;
-      if (chartModule && chartModule.schema) {
-        const result = z.object(chartModule.schema).safeParse(args);
+      const schema = Charts[chartType].schema;
+      if (schema) {
+        const result = z.object(schema).safeParse(args);
         if (!result.success) {
           throw new McpError(
             ErrorCode.InvalidParams,
@@ -196,10 +186,8 @@ export async function callToolWithPlaceholder(
       if (chartType === "polynomial-steps") {
         jsCode = generatePolynomialStepsCode({
           ...(args as any),
-          containerId: useGraphIdPlaceholder
-            ? "__GRAPH_ID__"
-            : actualContainerId,
-          useGraphIdPlaceholder: useGraphIdPlaceholder,
+          containerId: useGraphIdPlaceholder ? '__GRAPH_ID__' : actualContainerId,
+          useGraphIdPlaceholder: useGraphIdPlaceholder
         });
       } else {
         // Map JSXGraph chart types to renderer types
@@ -215,8 +203,7 @@ export async function callToolWithPlaceholder(
           "rational-function": "rational-function",
           "equation-system": "equation-system",
           "conic-section": "conic-section",
-          "number-line": "number-line",
-          "function-properties": "function-properties",
+          "number-line-inequality": "number-line-inequality",
         };
 
         const jsxGraphConfig: JSXGraphConfig = {
@@ -225,18 +212,16 @@ export async function callToolWithPlaceholder(
           height: (args as any).height || 600,
           boundingBox: (args as any).boundingBox || [-10, 10, 10, -10],
           config: args,
-          containerId: useGraphIdPlaceholder
-            ? "__GRAPH_ID__"
-            : actualContainerId,
+          containerId: useGraphIdPlaceholder ? '__GRAPH_ID__' : actualContainerId,
           pure: true,
-          useGraphIdPlaceholder: useGraphIdPlaceholder,
+          useGraphIdPlaceholder: useGraphIdPlaceholder
         };
 
         jsCode = generateJSXGraphCode(jsxGraphConfig);
       }
 
       // If not using placeholder, replace any placeholders with actual ID
-      if (!useGraphIdPlaceholder && jsCode.includes("__GRAPH_ID__")) {
+      if (!useGraphIdPlaceholder && jsCode.includes('__GRAPH_ID__')) {
         jsCode = replaceGraphIdPlaceholder(jsCode, actualContainerId);
       }
 
@@ -248,7 +233,7 @@ export async function callToolWithPlaceholder(
           },
         ],
         actualContainerId: actualContainerId, // Return the actual container ID used
-        usedPlaceholder: useGraphIdPlaceholder,
+        usedPlaceholder: useGraphIdPlaceholder
       };
     } catch (error: any) {
       if (error instanceof McpError) throw error;
@@ -270,9 +255,6 @@ export async function callToolWithPlaceholder(
  * @param code - JavaScript code with placeholders
  * @param actualId - Actual container ID to replace placeholders with
  */
-export function processGraphIdPlaceholders(
-  code: string,
-  actualId: string,
-): string {
+export function processGraphIdPlaceholders(code: string, actualId: string): string {
   return replaceGraphIdPlaceholder(code, actualId);
 }

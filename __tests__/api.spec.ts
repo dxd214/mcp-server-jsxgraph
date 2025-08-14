@@ -21,18 +21,16 @@ describe("sdk API", () => {
       "equation-system",
       "conic-section",
       "polynomial-steps",
-      "polynomial-complete",
-      "number-line",
-      "function-properties",
+      "number-line-inequality",
     ]);
   });
 
   it("chart meta structure", () => {
-    const charts = API["function-graph"]; // Use an existing tool
-    expect(charts.schema).toBeTypeOf("object");
-    expect(charts.tool).toBeTypeOf("object");
-    expect(charts.tool.name).toBeTypeOf("string");
-    expect(charts.tool.description).toBeTypeOf("string");
-    expect(charts.tool.inputSchema).toBeTypeOf("object");
+    const { "function-graph": functionGraph } = API;
+    expect(functionGraph.schema).toBeTypeOf("object");
+    expect(functionGraph.tool).toBeTypeOf("object");
+    expect(functionGraph.tool.name).toBeTypeOf("string");
+    expect(functionGraph.tool.description).toBeTypeOf("string");
+    expect(functionGraph.tool.inputSchema).toBeTypeOf("object");
   });
 });

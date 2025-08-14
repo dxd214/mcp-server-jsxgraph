@@ -1,18 +1,8 @@
 # MCP Server JSXGraph  ![](https://badge.mcpx.dev?type=server 'MCP Server')
 
-A production-ready Model Context Protocol server for generating advanced mathematical visualizations using [JSXGraph](https://jsxgraph.org/). This MCP server provides comprehensive interactive mathematical chart generation capabilities for functions, geometry, parametric curves, polynomial analysis, and educational mathematics.
+A Model Context Protocol server for generating mathematical visualizations using [JSXGraph](https://jsxgraph.org/). This MCP server provides interactive mathematical chart generation capabilities for functions, geometry, parametric curves, and educational mathematics.
 
-## 🎯 Version 0.0.3 - Complete Tool Standardization
-
-**🚀 Performance Breakthrough**: Test pass rate improved from 1.2% to **88%** (145/165 tests)
-
-**✨ Key Improvements:**
-- 🔧 **Math Functions Fixed**: All advanced mathematical functions (sin, cos, exp, sqrt, log) now work correctly
-- 📊 **Advanced Polynomial Analyzer**: Complete polynomial analysis with rational root test, synthetic division, and end behavior analysis
-- 🛠️ **Tool Naming Standardized**: All 15 tools now use consistent `generate_` naming pattern for perfect MCP client compatibility
-- ⚡ **Enhanced Stability**: Production-ready system with comprehensive mathematical analysis engine and unified interface
-
-This TypeScript-based MCP server provides robust mathematical visualization capabilities, perfect for educational mathematics, engineering, scientific applications, and advanced mathematical research.
+This is a TypeScript-based MCP server that provides mathematical visualization capabilities. It allows you to create various types of mathematical charts and diagrams through MCP tools, perfect for educational mathematics, engineering, and scientific applications.
 
 ## 📋 Table of Contents
 
@@ -26,45 +16,23 @@ This TypeScript-based MCP server provides robust mathematical visualization capa
 
 ## ✨ Features
 
-**15+ Production-Ready Mathematical Visualization Tools** powered by JSXGraph for interactive mathematical graphics.
+13 mathematical visualization tools powered by JSXGraph for interactive mathematical graphics.
 
-### 🎯 Core Mathematical Tools (JSXGraph)
+### Mathematical Visualization Charts (JSXGraph)
 
-#### 📈 Function Analysis & Graphing
-1. **`generate_function_graph`**: Advanced function graphs with derivatives, integrals, tangent lines, and multi-function support
-2. **`generate_function_transformation`**: Function transformations with translations, scaling, reflections, and animated compositions
-3. **`generate_function_properties`** ⭐: Comprehensive function analysis with domain, range, intercepts, extrema, and advanced properties
-
-#### 🧮 Polynomial Analysis (NEW & ENHANCED)
-4. **`generate_polynomial_complete`** ⭐ **NEW**: Complete polynomial analyzer with:
-   - 🔧 Rational root test and synthetic division
-   - 📊 Step-by-step factorization process  
-   - 🎯 Root multiplicity analysis (crossing, tangent, bounce behavior)
-   - 📈 End behavior and critical point analysis
-5. **`generate_polynomial_steps`**: Interactive step-by-step polynomial analysis with graphical representations
-6. **`generate_quadratic_analysis`**: Comprehensive quadratic analysis with vertex, roots, focus, and directrix
-
-#### 📐 Geometry & Advanced Mathematics  
-7. **`generate_geometry_diagram`**: Interactive geometry with points, lines, circles, polygons, and geometric constructions
-8. **`generate_parametric_curve`**: Parametric curves (circles, Lissajous, spirals, cycloids) with animated traces
-9. **`generate_vector_field`**: 2D vector fields with arrows, streamlines, singular points, and color-coded magnitudes
-10. **`generate_conic_section`**: Complete conic sections and high-degree polynomials with geometric properties
-
-#### 🔢 Equation Systems & Analysis
-11. **`generate_linear_system`**: Linear equations/inequalities with feasible regions and optimization
-12. **`generate_equation_system`**: Linear and nonlinear equation systems with numerical solutions and phase portraits
-13. **`generate_exponential_logarithm`**: Exponential and logarithmic functions with asymptotes and growth analysis
-14. **`generate_rational_function`**: Rational and irrational functions with asymptotes, holes, and critical points
-
-#### 📊 Specialized Tools
-15. **`number-line`** ⭐: Enhanced number line visualization with compound inequalities and interval notation
-
-### 🚀 Production-Quality Features
-- ✅ **88% Test Coverage**: Comprehensive test suite with 145/165 tests passing
-- 🔧 **Math Function Support**: All trigonometric, exponential, and radical functions working correctly
-- 📊 **Advanced Analysis**: Sophisticated mathematical computation engine
-- 🎨 **Interactive Graphics**: High-quality JSXGraph visualizations
-- 📱 **Multiple Platforms**: Support for desktop, web, and cloud deployments
+1. `generate_function_graph`: Generate mathematical function graphs with support for derivatives, integrals, tangent lines, and multiple functions.
+2. `generate_parametric_curve`: Generate parametric curves like circles, Lissajous curves, spirals, and cycloids with optional animated traces.
+3. `generate_geometry_diagram`: Create interactive geometry diagrams with points, lines, circles, polygons, angles, and geometric constructions.
+4. `generate_vector_field`: Visualize 2D vector fields with arrows, streamlines, singular points, and magnitude color coding.
+5. `generate_linear_system`: Visualize systems of linear equations and inequalities with feasible regions and linear programming optimization.
+6. `generate_function_transformation`: Show function transformations including translations, scaling, reflections, and compositions with animation.
+7. `generate_quadratic_analysis`: Comprehensive quadratic function analysis with vertex, roots, axis of symmetry, focus, and directrix.
+8. `generate_exponential_logarithm`: Plot exponential and logarithmic functions with asymptotes, growth/decay analysis, and inverse relationships.
+9. `generate_rational_function`: Visualize rational and irrational functions with asymptotes, holes, domain restrictions, and critical points.
+10. `generate_equation_system`: Solve and visualize linear and nonlinear equation systems with numerical solutions and phase portraits.
+11. `generate_conic_section`: Generate conic sections (circles, ellipses, parabolas, hyperbolas) and high-degree polynomials with geometric properties.
+12. `generate_polynomial_steps`: Interactive step-by-step polynomial analysis with roots, derivatives, and graphical representations.
+13. `generate_number_line_inequality`: Visualize inequalities on number lines with support for simple inequalities (x > 2), compound inequalities (1 < x < 4), and multiple inequality systems with custom styling.
 
 ## 🤖 Usage
 
@@ -190,35 +158,20 @@ You can disable specific mathematical visualization tools using the `DISABLED_TO
 ```
 
 **Available tool names for filtering:**
-
-#### 📈 Function Analysis & Graphing
 - `generate_function_graph`
-- `generate_function_transformation` 
-- `generate_function_properties` ⭐
-
-#### 🧮 Polynomial Analysis
-- `generate_polynomial_complete` ⭐ **NEW**
-- `generate_polynomial_steps`
-- `generate_quadratic_analysis`
-
-#### 📐 Geometry & Advanced Mathematics
-- `generate_geometry_diagram`
 - `generate_parametric_curve`
+- `generate_geometry_diagram`
 - `generate_vector_field`
-- `generate_conic_section`
-
-#### 🔢 Equation Systems & Analysis
 - `generate_linear_system`
-- `generate_equation_system`
+- `generate_function_transformation`
+- `generate_quadratic_analysis`
 - `generate_exponential_logarithm`
 - `generate_rational_function`
-
-#### 📊 Specialized Tools
-- `number-line` ⭐
+- `generate_equation_system`
+- `generate_conic_section`
+- `generate_polynomial_steps`
 
 ## 🔨 Development
-
-### Quick Start
 
 Install dependencies:
 
@@ -237,39 +190,6 @@ Start the MCP server:
 ```bash
 npm run start
 ```
-
-### Testing & Quality Assurance
-
-Run the comprehensive test suite (145/165 tests passing - 88%):
-
-```bash
-# Run all tests
-npm test
-
-# Run specific test suites
-npm test -- --run function-properties-core  # 97% pass rate (32/33)
-npm test -- --run polynomial-complete-core  # 100% pass rate (29/29)
-npm test -- --run env                       # 100% pass rate (5/5)
-npm test -- --run schema                    # 100% pass rate (1/1)
-```
-
-Code quality checks:
-
-```bash
-# Lint and format code
-npm run lint
-
-# Type checking
-npx tsc --noEmit
-```
-
-### 🎯 Key Development Achievements
-
-- **Math Function Engine**: Fixed critical Math object access issues affecting all trigonometric, exponential, and radical functions
-- **Advanced Polynomial Analysis**: Complete polynomial analyzer with rational root test, synthetic division, and root multiplicity analysis
-- **Production Quality**: 88% test pass rate with comprehensive mathematical accuracy validation
-- **Type Safety**: Full TypeScript support with comprehensive type definitions
-- **Modular Architecture**: Clean separation between mathematical analysis, visualization, and MCP protocol handling
 
 ## 📄 License
 
