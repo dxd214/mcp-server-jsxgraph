@@ -304,10 +304,10 @@ function generateGeometryDiagramCode(config: any, boundingBox: number[]): string
       // Find vertex point indices
       const vertexIndices = vertices.map((vertexName: string) => {
         return points.findIndex((p: any) => p.name === vertexName || p.name === `P${points.findIndex((p2: any) => p2.name === vertexName) + 1}`);
-      }).filter(index => index !== -1);
+      }).filter((index: any) => index !== -1);
       
       if (vertexIndices.length >= 3) {
-        const vertexPoints = vertexIndices.map(index => `point${index}`).join(', ');
+        const vertexPoints = vertexIndices.map((index: any) => `point${index}`).join(', ');
         jsCode += `var polygon${index} = board.create('polygon', [${vertexPoints}], {borders: {strokeColor: '${color}', strokeWidth: ${strokeWidth}}, fillColor: '${fillColor}', fillOpacity: ${fillOpacity}, name: 'Polygon ${index + 1}'});\n`;
       }
     });

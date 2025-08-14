@@ -286,7 +286,7 @@ function generateEquationSystemCode(config: any, boundingBox: number[]): string 
     
     // Show solution set if requested
     if (showSolutionSet) {
-      jsCode += `var solution${systemIndex} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 1 - systemIndex * 0.5}, 'System ${systemIndex + 1} solution: ${equations.map(eq => eq.expression).join(' = 0, ')} = 0'], {fontSize: 10, color: '#666'});\n`;
+      jsCode += `var solution${systemIndex} = board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 1 - systemIndex * 0.5}, 'System ${systemIndex + 1} solution: ${equations.map((eq: any) => eq.expression).join(' = 0, ')} = 0'], {fontSize: 10, color: '#666'});\n`;
     }
   });
 
@@ -343,8 +343,8 @@ function generateEquationSystemCode(config: any, boundingBox: number[]): string 
     jsCode += `// Linear algebra analysis\n`;
     
     // Find linear systems
-    const linearSystems = systems.filter(system => 
-      system.equations.every(eq => eq.type === "explicit" && eq.expression.includes('x') && eq.expression.includes('y'))
+        const linearSystems = systems.filter((system: any) =>
+      system.equations.every((eq: any) => eq.type === "explicit" && eq.expression.includes('x') && eq.expression.includes('y'))
     );
     
     linearSystems.forEach((system: any, index: number) => {
@@ -369,8 +369,8 @@ function generateEquationSystemCode(config: any, boundingBox: number[]): string 
     jsCode += `// Nonlinear system analysis\n`;
     
     // Find nonlinear systems
-    const nonlinearSystems = systems.filter(system => 
-      system.equations.some(eq => eq.expression.includes('^') || eq.expression.includes('Math.'))
+        const nonlinearSystems = systems.filter((system: any) =>
+      system.equations.some((eq: any) => eq.expression.includes('^') || eq.expression.includes('Math.'))
     );
     
     nonlinearSystems.forEach((system: any, index: number) => {
