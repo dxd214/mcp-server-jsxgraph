@@ -7,6 +7,7 @@ This is a TypeScript-based MCP server that provides mathematical visualization c
 ## 📋 Table of Contents
 
 - [✨ Features](#-features)
+- [🏗️ System Architecture](#%EF%B8%8F-system-architecture)
 - [🤖 Usage](#-usage)
 - [🚰 Run with SSE or Streamable transport](#-run-with-sse-or-streamable-transport)
 - [🎮 CLI Options](#-cli-options)
@@ -33,6 +34,197 @@ This is a TypeScript-based MCP server that provides mathematical visualization c
 11. `generate_conic_section`: Generate conic sections (circles, ellipses, parabolas, hyperbolas) and high-degree polynomials with geometric properties.
 12. `generate_polynomial_steps`: Interactive step-by-step polynomial analysis with roots, derivatives, and graphical representations.
 13. `generate_number_line_inequality`: Visualize inequalities on number lines with support for simple inequalities (x > 2), compound inequalities (1 < x < 4), and multiple inequality systems with custom styling.
+
+## 🏗️ System Architecture
+
+The MCP Server JSXGraph follows a layered architecture with clear separation between protocol handling, mathematical analysis, and visualization rendering.
+
+### High-Level System Architecture
+
+```mermaid
+graph TB
+    subgraph "Entry Layer"
+        CLI["CLI Entry Point<br/>src/index.ts"]
+        PKG["package.json<br/>Build Configuration"]
+    end
+    
+    subgraph "MCP Protocol Layer"
+        SERVER["MCP Server Core<br/>src/server.ts"]
+        HANDLERS["Request Handlers<br/>ListToolsRequestSchema<br/>CallToolRequestSchema"]
+    end
+    
+    subgraph "Transport Abstractions"
+        STDIO["Desktop Integration<br/>startStdioMcpServer()"]
+        SSE["Web Streaming<br/>startSSEMcpServer()"]
+        HTTP["Cloud Deployment<br/>startHTTPStreamableServer()"]
+    end
+    
+    subgraph "Tool Execution Framework"
+        DISPATCHER["callTool()<br/>Request Dispatcher"]
+        REGISTRY["Tool Registry<br/>jsxgraph/index.ts"]
+        ENGINE["MathAnalysisEngine<br/>Mathematical Core"]
+    end
+    
+    subgraph "Mathematical Tools"
+        FUNC["Function Analysis Tools"]
+        POLY["Polynomial Tools"] 
+        GEO["Geometry Tools"]
+        NUM["Number Line Tool"]
+    end
+    
+    CLI --> SERVER
+    PKG --> CLI
+    SERVER --> HANDLERS
+    HANDLERS --> STDIO
+    HANDLERS --> SSE
+    HANDLERS --> HTTP
+    STDIO --> DISPATCHER
+    SSE --> DISPATCHER
+    HTTP --> DISPATCHER
+    DISPATCHER --> REGISTRY
+    DISPATCHER --> ENGINE
+    REGISTRY --> FUNC
+    REGISTRY --> POLY
+    REGISTRY --> GEO
+    REGISTRY --> NUM
+```
+
+### Core Components
+
+#### MCP Protocol Implementation
+- **Server Core**: Implements Model Context Protocol through `@modelcontextprotocol/sdk`
+- **Request Handling**: Supports `ListToolsRequestSchema` and `CallToolRequestSchema`
+- **Tool Discovery**: Dynamic tool registration with environment-based filtering
+- **Error Management**: Comprehensive error handling with MCP-compliant error codes
+
+#### Transport Layer Support
+| Transport | Use Case | Endpoint | Integration |
+|-----------|----------|----------|-------------|
+| **STDIO** | Desktop applications (Claude, VSCode, Cline, Cursor) | Standard I/O | Direct MCP client integration |
+| **SSE** | Web streaming applications | `http://localhost:1122/sse` | Server-sent events |
+| **HTTP Streamable** | Cloud deployment platforms | `http://localhost:1122/mcp` | HTTP streaming protocol |
+
+#### Mathematical Analysis Engine
+The `MathAnalysisEngine` provides sophisticated mathematical computation capabilities:
+
+- **Function Analysis**: Domain, range, intercepts, extrema, asymptotes, monotonicity
+- **Polynomial Analysis**: Root finding, factorization, end behavior analysis  
+- **Inequality Solving**: Simple, compound, absolute value, and logical inequalities
+- **Numerical Methods**: Bisection method, numerical differentiation, interval calculations
+
+### MCP Protocol Communication Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as MCP Client
+    participant Server as Server Instance
+    participant Handler as CallToolRequestSchema Handler
+    participant Dispatcher as callTool() Function
+    participant Validator as Zod Schema Validation
+    participant Engine as MathAnalysisEngine
+    participant Generator as JSXGraph Code Generator
+    
+    Client->>Server: CallToolRequest
+    Server->>Handler: request.params
+    Handler->>Dispatcher: callTool(name, arguments)
+    Dispatcher->>Validator: z.object(schema).safeParse(args)
+    Validator-->>Dispatcher: Validation Result
+    
+    alt Valid Request
+        Dispatcher->>Engine: Mathematical Analysis
+        Engine-->>Dispatcher: Analysis Data
+        Dispatcher->>Generator: generateJSXGraphCode(config)
+        Generator-->>Dispatcher: JavaScript Code
+        Dispatcher-->>Handler: Tool Response
+        Handler-->>Server: Success Response
+        Server-->>Client: JSXGraph Visualization
+    else Invalid Request
+        Dispatcher-->>Handler: McpError(ErrorCode.InvalidParams)
+        Handler-->>Server: Error Response
+        Server-->>Client: Error Message
+    end
+```
+
+### Tool Execution Framework
+
+The system manages 15+ mathematical visualization tools through a unified execution framework:
+
+```mermaid
+graph LR
+    subgraph "Tool Registry"
+        CHARTS["Charts Object<br/>All Tool Definitions"]
+        ENABLED["getEnabledTools()<br/>Environment Filtering"]
+        DISABLED["getDisabledTools()<br/>Environment Variables"]
+    end
+    
+    subgraph "Type System"
+        MAP["CHART_TYPE_MAP<br/>Tool Name Mapping"]
+        JSXSET["JSXGRAPH_CHARTS Set<br/>Type Validation"]
+        CONFIG["JSXGraphConfig Interface<br/>Common Parameters"]
+    end
+    
+    subgraph "Code Generation"
+        CONTAINER["Dynamic Container IDs<br/>jxgbox_[type]_[timestamp]"]
+        GENERATOR["generateJSXGraphCode()<br/>HTML Generation"]
+        SPECIAL["Special Handling<br/>polynomial-steps<br/>number-line"]
+    end
+    
+    CHARTS --> ENABLED
+    ENABLED --> MAP
+    MAP --> JSXSET
+    JSXSET --> CONFIG
+    CONFIG --> CONTAINER
+    CONTAINER --> GENERATOR
+    GENERATOR --> SPECIAL
+```
+
+### Mathematical Tool Categories
+
+| Category | Tools | Core Capabilities |
+|----------|--------|------------------|
+| **Function Analysis** | `generate_function_graph`<br/>`generate_function_transformation`<br/>`generate_function_properties` | Function graphs, transformations, comprehensive analysis with derivatives and integrals |
+| **Polynomial Analysis** | `generate_polynomial_complete`<br/>`generate_polynomial_steps`<br/>`generate_quadratic_analysis` | Polynomial factorization, root finding, step-by-step analysis |
+| **Geometry & Advanced** | `generate_geometry_diagram`<br/>`generate_parametric_curve`<br/>`generate_vector_field`<br/>`generate_conic_section` | Interactive geometry, parametric curves, vector field visualization |
+| **Equation Systems** | `generate_linear_system`<br/>`generate_equation_system`<br/>`generate_exponential_logarithm`<br/>`generate_rational_function` | Linear/nonlinear systems, exponential and logarithmic functions |
+| **Specialized Tools** | `generate_number_line_inequality` | Enhanced inequality visualization with interval notation |
+
+### Technology Stack
+
+```mermaid
+graph TD
+    subgraph "Core Framework"
+        TS["TypeScript"]
+        NODE["Node.js Runtime"]
+    end
+    
+    subgraph "MCP Integration"
+        SDK["@modelcontextprotocol/sdk"]
+        PROTO["MCP Protocol Implementation"]
+    end
+    
+    subgraph "Mathematical Libraries"
+        JSX["JSXGraph"]
+        ZOD["Zod Schema Validation"]
+        MATH["Mathematical Analysis Engine"]
+    end
+    
+    subgraph "Development Tools"
+        VITEST["Vitest Testing Framework"]
+        BIOME["Biome Linting & Formatting"]
+        BUILD["TypeScript Build System"]
+    end
+    
+    TS --> NODE
+    SDK --> PROTO
+    JSX --> MATH
+    ZOD --> MATH
+    VITEST --> BUILD
+    BIOME --> BUILD
+    
+    NODE --> SDK
+    PROTO --> JSX
+    MATH --> VITEST
+```
 
 ## 🤖 Usage
 
