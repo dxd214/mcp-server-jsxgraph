@@ -15,7 +15,8 @@ export function replaceGraphIdPlaceholder(code: string, actualId: string): strin
 export interface JSXGraphConfig {
   type: "function" | "parametric" | "geometry" | "vector-field" | "linear-system" | 
         "function-transformation" | "quadratic-analysis" | "exponential-logarithm" |
-        "rational-function" | "equation-system" | "conic-section" | "number-line-inequality";
+        "rational-function" | "equation-system" | "conic-section" | "number-line-inequality" |
+        "trigonometric-analysis";
   width?: number;
   height?: number;
   boundingBox?: number[];
@@ -565,6 +566,9 @@ export function generateJSXGraphCode(config: JSXGraphConfig): string {
       break;
     case 'number-line-inequality':
       jsCode = generateNumberLineInequalityCode(config.config, boundingBox, graphId);
+      break;
+    case 'trigonometric-analysis':
+      jsCode = generateTrigonometricAnalysisCode(graphId, config);
       break;
     default:
       jsCode = generateFunctionGraphCode(config.config, boundingBox, graphId);
@@ -1285,8 +1289,380 @@ function generateQuadraticAnalysisCode(config: any, boundingBox: number[], conta
 }
 
 function generateExponentialLogarithmCode(config: any, boundingBox: number[], containerId: string = 'jxgbox'): string {
-  // For now, use function graph code as a fallback
-  return generateFunctionGraphCode(config, boundingBox, containerId);
+  const boardConfig = {
+    boundingbox: boundingBox,
+    axis: config.style?.axis !== false,
+    grid: config.style?.grid !== false,
+    keepaspectratio: config.keepAspectRatio || false,
+    showCopyright: config.showCopyright || false,
+    showNavigation: config.showNavigation !== false,
+    zoom: config.zoom || { enabled: true, wheel: true },
+    pan: config.pan || { enabled: true }
+  };
+
+  let code = `
+    var board = JXG.JSXGraph.initBoard('${containerId}', ${JSON.stringify(boardConfig)});
+    
+    // Add title if provided
+    ${config.title ? `board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 1}, '${config.title}'], {fontSize: 18, fontWeight: 'bold'});` : ''}
+    
+    // Add axis labels
+    ${config.axisXTitle ? `board.create('text', [${boundingBox[2] - 1}, 0.5, '${config.axisXTitle}'], {fontSize: 14});` : ''}
+    ${config.axisYTitle ? `board.create('text', [0.5, ${boundingBox[1] - 1}, '${config.axisYTitle}'], {fontSize: 14});` : ''}
+    
+    // Helper functions
+    function safeLog(x, base) {
+      if (x <= 0) return NaN;
+      return Math.log(x) / Math.log(base);
+    }
+    
+    function safeExp(x, base) {
+      if (base <= 0 || base === 1) return NaN;
+      try {
+        var result = Math.pow(base, x);
+        return isFinite(result) ? result : NaN;
+      } catch(e) {
+        return NaN;
+      }
+    }
+  `;
+
+  // Show y=x line for inverse relationships if requested
+  if (config.showReflectionLine) {
+    code += `
+    // y = x line for inverse relationship
+    var reflectionLine = board.create('line', [
+      [${boundingBox[0]}, ${boundingBox[0]}], 
+      [${boundingBox[2]}, ${boundingBox[2]}]
+    ], {
+      strokeColor: '#cccccc',
+      strokeWidth: 1,
+      dash: 2,
+      name: 'y = x',
+      straightFirst: false,
+      straightLast: false
+    });
+    `;
+  }
+
+  // Draw each function
+  if (config.functions && config.functions.length > 0) {
+    config.functions.forEach((func: any, index: number) => {
+      const {
+        type,
+        base = Math.E,
+        coefficient = 1,
+        hShift = 0,
+        vShift = 0,
+        expression,
+        color = '#0066cc',
+        strokeWidth = 2,
+        name,
+        dash = 0,
+        domain
+      } = func;
+
+      code += `
+    // ${type.toUpperCase()} FUNCTION ${index + 1}${name ? ` - ${name}` : ''}
+    (function() {
+      var base = ${base};
+      var coefficient = ${coefficient};
+      var hShift = ${hShift};
+      var vShift = ${vShift};
+      var color = '${color}';
+      var strokeWidth = ${strokeWidth};
+      var dash = ${dash};
+      var domain = ${domain ? JSON.stringify(domain) : 'null'};
+      `;
+
+      if (expression) {
+        // Custom expression
+        code += `
+      var f = function(x) {
+        if (domain && (x < domain[0] || x > domain[1])) return NaN;
+        return ${expression.replace(/x/g, 'x')};
+      };
+      `;
+      } else if (type === 'exponential') {
+        code += `
+      var f = function(x) {
+        if (domain && (x < domain[0] || x > domain[1])) return NaN;
+        return coefficient * safeExp(x - hShift, base) + vShift;
+      };
+      `;
+      } else if (type === 'logarithm') {
+        code += `
+      var f = function(x) {
+        if (domain && (x < domain[0] || x > domain[1])) return NaN;
+        var input = x - hShift;
+        return coefficient * safeLog(input, base) + vShift;
+      };
+      `;
+      }
+
+      code += `
+      var curve = board.create('functiongraph', [f], {
+        strokeColor: color,
+        strokeWidth: strokeWidth,
+        dash: dash,
+        name: '${name || `${type}${index + 1}`}'
+      });
+    `;
+
+      // Show asymptotes
+      if (config.showAsymptotes !== false) {
+        if (type === 'exponential') {
+          // Horizontal asymptote
+          code += `
+      // Horizontal asymptote y = ${vShift}
+      board.create('line', [
+        [${boundingBox[0]}, ${vShift}], 
+        [${boundingBox[2]}, ${vShift}]
+      ], {
+        strokeColor: color,
+        strokeWidth: 1,
+        dash: 2,
+        opacity: 0.6,
+        name: 'y = ' + ${vShift},
+        straightFirst: false,
+        straightLast: false
+      });
+      `;
+        } else if (type === 'logarithm') {
+          // Vertical asymptote
+          code += `
+      // Vertical asymptote x = ${hShift}
+      board.create('line', [
+        [${hShift}, ${boundingBox[3]}], 
+        [${hShift}, ${boundingBox[1]}]
+      ], {
+        strokeColor: color,
+        strokeWidth: 1,
+        dash: 2,
+        opacity: 0.6,
+        name: 'x = ' + ${hShift},
+        straightFirst: false,
+        straightLast: false
+      });
+      `;
+        }
+      }
+
+      // Show intercepts
+      if (config.showIntercepts !== false) {
+        if (type === 'exponential') {
+          // Y-intercept
+          const yIntercept = coefficient * Math.pow(base, -hShift) + vShift;
+          code += `
+      // Y-intercept at (0, ${yIntercept.toFixed(3)})
+      var yIntercept = ${yIntercept};
+      board.create('point', [0, yIntercept], {
+        size: 4,
+        color: color,
+        fillColor: color,
+        strokeColor: color,
+        name: '(0, ' + yIntercept.toFixed(2) + ')',
+        fixed: true
+      });
+      `;
+          
+          // X-intercept (if it exists and is finite)
+          if (vShift !== 0) {
+            const xIntercept = hShift + Math.log(-vShift / coefficient) / Math.log(base);
+            if (isFinite(xIntercept) && xIntercept >= boundingBox[0] && xIntercept <= boundingBox[2]) {
+              code += `
+      // X-intercept at (${xIntercept.toFixed(3)}, 0)
+      var xIntercept = ${xIntercept};
+      board.create('point', [xIntercept, 0], {
+        size: 4,
+        color: color,
+        fillColor: color,
+        strokeColor: color,
+        name: '(' + xIntercept.toFixed(2) + ', 0)',
+        fixed: true
+      });
+      `;
+            }
+          }
+        } else if (type === 'logarithm') {
+          // X-intercept
+          const xIntercept = Math.pow(base, -vShift / coefficient) + hShift;
+          if (isFinite(xIntercept) && xIntercept >= boundingBox[0] && xIntercept <= boundingBox[2]) {
+            code += `
+      // X-intercept at (${xIntercept.toFixed(3)}, 0)
+      var xIntercept = ${xIntercept};
+      board.create('point', [xIntercept, 0], {
+        size: 4,
+        color: color,
+        fillColor: color,
+        strokeColor: color,
+        name: '(' + xIntercept.toFixed(2) + ', 0)',
+        fixed: true
+      });
+      `;
+          }
+        }
+      }
+
+      // Show inverse function if requested
+      if (config.showInverse) {
+        code += `
+      // Inverse function
+      var inverseF;
+      if ('${type}' === 'exponential') {
+        // Inverse of exponential is logarithm
+        inverseF = function(x) {
+          var adjustedX = x - vShift;
+          if (adjustedX <= 0 || coefficient === 0) return NaN;
+          return hShift + safeLog(adjustedX / coefficient, base);
+        };
+      } else {
+        // Inverse of logarithm is exponential
+        inverseF = function(x) {
+          var adjustedX = x - vShift;
+          return hShift + safeExp(adjustedX / coefficient, base);
+        };
+      }
+      
+      var inverseCurve = board.create('functiongraph', [inverseF], {
+        strokeColor: color,
+        strokeWidth: strokeWidth,
+        dash: 1,
+        opacity: 0.7,
+        name: 'inverse of ' + '${name || `${type}${index + 1}`}'
+      });
+      `;
+      }
+
+      code += `
+    })();
+    `;
+    });
+  }
+
+  // Add special points
+  if (config.specialPoints && config.specialPoints.length > 0) {
+    config.specialPoints.forEach((point: any, index: number) => {
+      const { x, y, label, color = '#ff0000', size = 4 } = point;
+      code += `
+    // Special point ${index + 1}${label ? ` - ${label}` : ''}
+    board.create('point', [${x}, ${y}], {
+      size: ${size},
+      color: '${color}',
+      fillColor: '${color}',
+      strokeColor: '${color}',
+      name: '${label || `SP${index + 1}`}',
+      fixed: true
+    });
+    `;
+    });
+  }
+
+  // Add comparison points
+  if (config.comparisonPoints && config.comparisonPoints.length > 0) {
+    config.comparisonPoints.forEach((cp: any, index: number) => {
+      const { x, showValues = true } = cp;
+      if (showValues && config.functions) {
+        code += `
+    // Comparison at x = ${x}
+    var compX = ${x};
+    var compLine = board.create('line', [
+      [compX, ${boundingBox[3]}], 
+      [compX, ${boundingBox[1]}]
+    ], {
+      strokeColor: '#999999',
+      strokeWidth: 1,
+      dash: 3,
+      opacity: 0.5,
+      name: 'x = ' + compX,
+      straightFirst: false,
+      straightLast: false
+    });
+    `;
+
+        config.functions.forEach((func: any, funcIndex: number) => {
+          code += `
+    // Mark function value at comparison point
+    var funcValue${funcIndex} = curve.Y ? curve.Y(compX) : NaN;
+    if (isFinite(funcValue${funcIndex})) {
+      board.create('point', [compX, funcValue${funcIndex}], {
+        size: 3,
+        color: '${func.color || '#0066cc'}',
+        fillColor: '${func.color || '#0066cc'}',
+        strokeColor: '${func.color || '#0066cc'}',
+        name: 'f(${x}) = ' + funcValue${funcIndex}.toFixed(2),
+        fixed: true
+      });
+    }
+    `;
+        });
+      }
+    });
+  }
+
+  // Add tangent lines at specified points
+  if (config.tangentAt && config.tangentAt.length > 0 && config.functions) {
+    config.tangentAt.forEach((x: number, index: number) => {
+      code += `
+    // Tangent line at x = ${x}
+    var tangentX = ${x};
+    var h = 0.001; // Small increment for derivative approximation
+    
+    // Calculate derivative numerically for the first function
+    var fVal = f(tangentX);
+    var fValNext = f(tangentX + h);
+    var slope = (fValNext - fVal) / h;
+    
+    if (isFinite(fVal) && isFinite(slope)) {
+      var tangentLine = board.create('line', [
+        [tangentX - 1, fVal - slope],
+        [tangentX + 1, fVal + slope]
+      ], {
+        strokeColor: '${config.functions[0]?.color || '#0066cc'}',
+        strokeWidth: 1,
+        dash: 1,
+        opacity: 0.8,
+        name: 'tangent at x=' + tangentX,
+        straightFirst: false,
+        straightLast: false
+      });
+      
+      // Mark the point of tangency
+      board.create('point', [tangentX, fVal], {
+        size: 3,
+        color: '${config.functions[0]?.color || '#0066cc'}',
+        fillColor: '${config.functions[0]?.color || '#0066cc'}',
+        strokeColor: '${config.functions[0]?.color || '#0066cc'}',
+        name: 'tangent point',
+        fixed: true
+      });
+    }
+    `;
+    });
+  }
+
+  // Add growth/decay analysis
+  if (config.growthDecayAnalysis?.show) {
+    const { initialValue, timeUnit = 't', rateLabel = 'rate' } = config.growthDecayAnalysis;
+    code += `
+    // Growth/Decay Analysis
+    ${initialValue !== undefined ? `
+    board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 2}, 'Initial Value: ${initialValue}'], {
+      fontSize: 12, color: '#333333'
+    });
+    ` : ''}
+    
+    board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 3}, 'Time Unit: ${timeUnit}'], {
+      fontSize: 12, color: '#333333'
+    });
+    `;
+  }
+
+  code += `
+    return board;
+  `;
+
+  return code;
 }
 
 function generateRationalFunctionCode(config: any, boundingBox: number[], containerId: string = 'jxgbox'): string {
@@ -1300,8 +1676,405 @@ function generateEquationSystemCode(config: any, boundingBox: number[], containe
 }
 
 function generateConicSectionCode(config: any, boundingBox: number[], containerId: string = 'jxgbox'): string {
-  // For now, use function graph code as a fallback
-  return generateFunctionGraphCode(config, boundingBox, containerId);
+  const boardConfig = {
+    boundingbox: boundingBox,
+    axis: config.style?.axis !== false,
+    grid: config.style?.grid !== false,
+    keepaspectratio: config.keepAspectRatio || false,
+    showCopyright: config.showCopyright || false,
+    showNavigation: config.showNavigation !== false,
+    zoom: config.zoom || { enabled: true, wheel: true },
+    pan: config.pan || { enabled: true }
+  };
+
+  let code = `
+    var board = JXG.JSXGraph.initBoard('${containerId}', ${JSON.stringify(boardConfig)});
+    
+    // Add title if provided
+    ${config.title ? `board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 1}, '${config.title}'], {fontSize: 18, fontWeight: 'bold'});` : ''}
+    
+    // Add axis labels
+    ${config.axisXTitle ? `board.create('text', [${boundingBox[2] - 1}, 0.5, '${config.axisXTitle}'], {fontSize: 14});` : ''}
+    ${config.axisYTitle ? `board.create('text', [0.5, ${boundingBox[1] - 1}, '${config.axisYTitle}'], {fontSize: 14});` : ''}
+    
+    // Helper functions
+    function degToRad(deg) { return deg * Math.PI / 180; }
+    function radToDeg(rad) { return rad * 180 / Math.PI; }
+  `;
+
+  // Draw standard conic sections
+  if (config.conics && config.conics.length > 0) {
+    config.conics.forEach((conic: any, index: number) => {
+      const {
+        type,
+        center = { x: 0, y: 0 },
+        radius,
+        a,
+        b,
+        p,
+        vertex = { x: 0, y: 0 },
+        orientation = 'vertical',
+        rotation = 0,
+        color = '#0066cc',
+        strokeWidth = 2,
+        fillColor,
+        fillOpacity = 0,
+        name,
+        dash = 0
+      } = conic;
+
+      code += `
+    // ${type.toUpperCase()} ${index + 1}${name ? ` - ${name}` : ''}
+    (function() {
+      var center = [${center.x}, ${center.y}];
+      var rotation = degToRad(${rotation});
+      var color = '${color}';
+      var strokeWidth = ${strokeWidth};
+      var dash = ${dash};
+      var fillColor = '${fillColor || 'transparent'}';
+      var fillOpacity = ${fillOpacity};
+      `;
+
+      switch (type) {
+        case 'circle':
+          code += `
+      // Circle with radius ${radius}
+      var circle = board.create('circle', [center, ${radius || 1}], {
+        strokeColor: color,
+        strokeWidth: strokeWidth,
+        dash: dash,
+        fillColor: fillColor,
+        fillOpacity: fillOpacity,
+        name: '${name || `C${index + 1}`}'
+      });
+      `;
+          break;
+
+        case 'ellipse':
+          code += `
+      // Ellipse with semi-major axis a=${a} and semi-minor axis b=${b}
+      var a = ${a || 3};
+      var b = ${b || 2};
+      var f1, f2;
+      
+      if (a > b) {
+        // Major axis along x
+        var c = Math.sqrt(a*a - b*b);
+        f1 = [center[0] - c * Math.cos(rotation), center[1] - c * Math.sin(rotation)];
+        f2 = [center[0] + c * Math.cos(rotation), center[1] + c * Math.sin(rotation)];
+      } else {
+        // Major axis along y
+        var c = Math.sqrt(b*b - a*a);
+        f1 = [center[0] - c * Math.sin(rotation), center[1] + c * Math.cos(rotation)];
+        f2 = [center[0] + c * Math.sin(rotation), center[1] - c * Math.cos(rotation)];
+      }
+      
+      var ellipse = board.create('ellipse', [f1, f2, a + b], {
+        strokeColor: color,
+        strokeWidth: strokeWidth,
+        dash: dash,
+        fillColor: fillColor,
+        fillOpacity: fillOpacity,
+        name: '${name || `E${index + 1}`}'
+      });
+      `;
+          break;
+
+        case 'parabola':
+          code += `
+      // Parabola with parameter p=${p}, vertex at (${vertex.x}, ${vertex.y}), ${orientation}
+      var vertex = [${vertex.x}, ${vertex.y}];
+      var p = ${p || 1};
+      var orientation = '${orientation}';
+      
+      var focus, directrix;
+      if (orientation === 'vertical') {
+        focus = [vertex[0], vertex[1] + p/4];
+        directrix = board.create('line', [
+          [vertex[0] - 3, vertex[1] - p/4], 
+          [vertex[0] + 3, vertex[1] - p/4]
+        ], {
+          strokeColor: color,
+          strokeWidth: 1,
+          dash: 2,
+          opacity: 0.5,
+          name: 'directrix',
+          straightFirst: false,
+          straightLast: false
+        });
+      } else {
+        focus = [vertex[0] + p/4, vertex[1]];
+        directrix = board.create('line', [
+          [vertex[0] - p/4, vertex[1] - 3], 
+          [vertex[0] - p/4, vertex[1] + 3]
+        ], {
+          strokeColor: color,
+          strokeWidth: 1,
+          dash: 2,
+          opacity: 0.5,
+          name: 'directrix',
+          straightFirst: false,
+          straightLast: false
+        });
+      }
+      
+      var parabola = board.create('parabola', [focus, directrix], {
+        strokeColor: color,
+        strokeWidth: strokeWidth,
+        dash: dash,
+        name: '${name || `P${index + 1}`}'
+      });
+      `;
+          break;
+
+        case 'hyperbola':
+          code += `
+      // Hyperbola with parameters a=${a}, b=${b}
+      var a = ${a || 2};
+      var b = ${b || 1.5};
+      var c = Math.sqrt(a*a + b*b);
+      
+      var f1 = [center[0] - c, center[1]];
+      var f2 = [center[0] + c, center[1]];
+      
+      var hyperbola = board.create('hyperbola', [f1, f2, a], {
+        strokeColor: color,
+        strokeWidth: strokeWidth,
+        dash: dash,
+        name: '${name || `H${index + 1}`}'
+      });
+      
+      // Draw asymptotes
+      if (${config.showAsymptotes !== false}) {
+        var slope1 = b/a;
+        var slope2 = -b/a;
+        board.create('line', [center, [center[0] + 1, center[1] + slope1]], {
+          strokeColor: color,
+          strokeWidth: 1,
+          dash: 2,
+          opacity: 0.6,
+          name: 'asymptote1'
+        });
+        board.create('line', [center, [center[0] + 1, center[1] + slope2]], {
+          strokeColor: color,
+          strokeWidth: 1,
+          dash: 2,
+          opacity: 0.6,
+          name: 'asymptote2'
+        });
+      }
+      `;
+          break;
+      }
+
+      // Add foci markers
+      if (config.showFoci !== false && (type === 'ellipse' || type === 'hyperbola' || type === 'parabola')) {
+        code += `
+      // Mark foci
+      if (typeof f1 !== 'undefined') {
+        board.create('point', f1, {
+          size: 4,
+          color: color,
+          fillColor: color,
+          strokeColor: color,
+          name: 'F1',
+          fixed: true
+        });
+      }
+      if (typeof f2 !== 'undefined') {
+        board.create('point', f2, {
+          size: 4,
+          color: color,
+          fillColor: color,
+          strokeColor: color,
+          name: 'F2',
+          fixed: true
+        });
+      }
+      if (typeof focus !== 'undefined') {
+        board.create('point', focus, {
+          size: 4,
+          color: color,
+          fillColor: color,
+          strokeColor: color,
+          name: 'F',
+          fixed: true
+        });
+      }
+      `;
+      }
+
+      // Add center marker
+      if (config.showCenter !== false && (type === 'circle' || type === 'ellipse' || type === 'hyperbola')) {
+        code += `
+      board.create('point', center, {
+        size: 3,
+        color: color,
+        fillColor: color,
+        strokeColor: color,
+        name: 'O',
+        fixed: true
+      });
+      `;
+      }
+
+      // Add vertices
+      if (config.showVertices !== false) {
+        if (type === 'parabola') {
+          code += `
+      board.create('point', vertex, {
+        size: 4,
+        color: color,
+        fillColor: color,
+        strokeColor: color,
+        name: 'V',
+        fixed: true
+      });
+      `;
+        } else if (type === 'ellipse' || type === 'hyperbola') {
+          code += `
+      // Mark vertices
+      var vertices = [];
+      if ('${type}' === 'ellipse') {
+        var majorAxis = Math.max(a, b);
+        var minorAxis = Math.min(a, b);
+        vertices = [
+          [center[0] - majorAxis, center[1]],
+          [center[0] + majorAxis, center[1]],
+          [center[0], center[1] - minorAxis],
+          [center[0], center[1] + minorAxis]
+        ];
+      } else {
+        vertices = [
+          [center[0] - a, center[1]],
+          [center[0] + a, center[1]]
+        ];
+      }
+      
+      vertices.forEach(function(v, i) {
+        board.create('point', v, {
+          size: 3,
+          color: color,
+          fillColor: color,
+          strokeColor: color,
+          name: 'V' + (i+1),
+          fixed: true
+        });
+      });
+      `;
+        }
+      }
+
+      code += `
+    })();
+    `;
+    });
+  }
+
+  // Draw general conic equations: Ax² + Bxy + Cy² + Dx + Ey + F = 0
+  if (config.generalConics && config.generalConics.length > 0) {
+    config.generalConics.forEach((conic: any, index: number) => {
+      const { A, B, C, D, E, F, color = '#009900', strokeWidth = 2, name } = conic;
+      
+      code += `
+    // General conic ${index + 1}: ${A}x² + ${B}xy + ${C}y² + ${D}x + ${E}y + ${F} = 0
+    var generalConic${index} = board.create('implicitcurve', [
+      function(x, y) {
+        return ${A}*x*x + ${B}*x*y + ${C}*y*y + ${D}*x + ${E}*y + ${F};
+      }
+    ], {
+      strokeColor: '${color}',
+      strokeWidth: ${strokeWidth},
+      name: '${name || `GC${index + 1}`}'
+    });
+    `;
+    });
+  }
+
+  // Draw high-degree polynomials
+  if (config.polynomials && config.polynomials.length > 0) {
+    config.polynomials.forEach((poly: any, index: number) => {
+      const { coefficients, color = '#ff6600', strokeWidth = 2, name, dash = 0 } = poly;
+      
+      // Build polynomial expression
+      let polyExpression = '';
+      coefficients.forEach((coeff: number, i: number) => {
+        if (coeff === 0) return;
+        
+        if (polyExpression && coeff > 0) polyExpression += ' + ';
+        else if (coeff < 0) polyExpression += ' - ';
+        
+        const absCoeff = Math.abs(coeff);
+        if (i === 0) {
+          polyExpression += absCoeff;
+        } else if (i === 1) {
+          polyExpression += `${absCoeff === 1 ? '' : absCoeff}*x`;
+        } else {
+          polyExpression += `${absCoeff === 1 ? '' : absCoeff}*Math.pow(x, ${i})`;
+        }
+      });
+
+      code += `
+    // Polynomial ${index + 1}${name ? ` - ${name}` : ''}: ${polyExpression}
+    var poly${index} = board.create('functiongraph', [
+      function(x) {
+        return ${coefficients.map((c: number, i: number) => 
+          i === 0 ? c :
+          i === 1 ? `${c}*x` :
+          `${c}*Math.pow(x, ${i})`
+        ).join(' + ')};
+      }
+    ], {
+      strokeColor: '${color}',
+      strokeWidth: ${strokeWidth},
+      dash: ${dash},
+      name: '${name || `P${index + 1}`}'
+    });
+    `;
+
+      // Mark polynomial roots if enabled
+      if (config.showPolynomialRoots !== false) {
+        code += `
+    // Find and mark approximate roots for polynomial ${index + 1}
+    var roots = [];
+    for (var x = ${boundingBox[0]}; x <= ${boundingBox[2]}; x += 0.1) {
+      var y = poly${index}.Y(x);
+      var nextY = poly${index}.Y(x + 0.1);
+      if (Math.abs(y) < 0.1 || (y * nextY < 0)) {
+        // Potential root found
+        var root = JXG.Math.Numerics.fzero(poly${index}.Y, [x, x + 0.1]);
+        if (root && Math.abs(poly${index}.Y(root)) < 0.01) {
+          roots.push(root);
+          board.create('point', [root, 0], {
+            size: 4,
+            color: '${color}',
+            fillColor: '${color}',
+            strokeColor: '${color}',
+            name: 'r' + roots.length,
+            fixed: true
+          });
+        }
+      }
+    }
+    `;
+      }
+    });
+  }
+
+  // Add intersection analysis if enabled
+  if (config.intersectionAnalysis?.enabled && config.intersectionAnalysis?.between) {
+    const [i1, i2] = config.intersectionAnalysis.between;
+    code += `
+    // Find intersections between curve ${i1} and curve ${i2}
+    // This is a placeholder - intersection finding requires more complex implementation
+    `;
+  }
+
+  code += `
+    return board;
+  `;
+
+  return code;
 }
 
 function generateNumberLineInequalityCode(config: any, boundingBox: number[], containerId: string = 'jxgbox'): string {
@@ -1543,6 +2316,331 @@ function generateNumberLineInequalityCode(config: any, boundingBox: number[], co
         });
       }
     }
+  `;
+
+  return code;
+}
+
+/**
+ * Generate JSXGraph code for comprehensive trigonometric function analysis
+ */
+export function generateTrigonometricAnalysisCode(containerId: string, config: JSXGraphConfig): string {
+  const {
+    functions,
+    analysisOptions = {},
+    points = [],
+    xAxisUnit = "radians",
+    showGrid = true,
+    gridType = "standard",
+  } = config.config;
+
+  const {
+    boundingBox = [-10, 10, 10, -10],
+    width,
+    height,
+  } = config;
+
+  const { 
+    title, 
+    axisXTitle, 
+    axisYTitle,
+    showCopyright,
+    showNavigation,
+    zoom,
+    pan,
+    keepAspectRatio,
+    style
+  } = config.config;
+
+  if (!functions || functions.length === 0) {
+    throw new Error("At least one trigonometric function is required");
+  }
+
+  const boardConfig = {
+    boundingbox: boundingBox,
+    axis: true,
+    grid: showGrid,
+    showCopyright: showCopyright ?? false,
+    showNavigation: showNavigation ?? true,
+    zoom: zoom ?? { wheel: true },
+    pan: pan ?? { enabled: true },
+    keepaspectratio: keepAspectRatio ?? false,
+    ...(style || {}),
+  };
+
+  let code = `
+    var board = JXG.JSXGraph.initBoard('${containerId}', ${JSON.stringify(boardConfig)});
+    
+    // Add title if provided
+    ${title ? `board.create('text', [${boundingBox[0] + 1}, ${boundingBox[1] - 0.5}, '${title}'], {fontSize: 18, fontWeight: 'bold'});` : ''}
+    
+    // Add axis labels
+    ${axisXTitle ? `board.create('text', [${boundingBox[2] - 1}, 0.5, '${axisXTitle}'], {fontSize: 14});` : ''}
+    ${axisYTitle ? `board.create('text', [0.5, ${boundingBox[1] - 1}, '${axisYTitle}'], {fontSize: 14});` : ''}
+    
+    // Helper functions for trigonometric calculations
+    function getTrigFunction(type, x, transformation) {
+      var t = transformation || {};
+      var A = t.amplitude || 1;
+      var B = t.frequency || 1;
+      var C = t.phaseShift || 0;
+      var D = t.verticalShift || 0;
+      
+      var input = B * x + C;
+      var result;
+      
+      switch(type) {
+        case 'sin': result = A * Math.sin(input) + D; break;
+        case 'cos': result = A * Math.cos(input) + D; break;
+        case 'tan': result = A * Math.tan(input) + D; break;
+        case 'csc': result = A * (1/Math.sin(input)) + D; break;
+        case 'sec': result = A * (1/Math.cos(input)) + D; break;
+        case 'cot': result = A * (1/Math.tan(input)) + D; break;
+        case 'asin': result = A * Math.asin(input) + D; break;
+        case 'acos': result = A * Math.acos(input) + D; break;
+        case 'atan': result = A * Math.atan(input) + D; break;
+        case 'sinh': result = A * Math.sinh(input) + D; break;
+        case 'cosh': result = A * Math.cosh(input) + D; break;
+        case 'tanh': result = A * Math.tanh(input) + D; break;
+        default: result = 0;
+      }
+      
+      return isFinite(result) ? result : NaN;
+    }
+    
+    function getPeriod(type, frequency) {
+      var B = frequency || 1;
+      switch(type) {
+        case 'sin': case 'cos': case 'csc': case 'sec': 
+          return 2 * Math.PI / Math.abs(B);
+        case 'tan': case 'cot':
+          return Math.PI / Math.abs(B);
+        default:
+          return 2 * Math.PI / Math.abs(B);
+      }
+    }
+    
+    function hasAsymptotes(type) {
+      return ['tan', 'cot', 'sec', 'csc'].includes(type);
+    }
+    
+    function getAsymptotePositions(type, transformation, xMin, xMax) {
+      var t = transformation || {};
+      var B = t.frequency || 1;
+      var C = t.phaseShift || 0;
+      var positions = [];
+      
+      var offset, period;
+      if (type === 'tan' || type === 'cot') {
+        offset = type === 'tan' ? Math.PI/2 : 0;
+        period = Math.PI / Math.abs(B);
+      } else if (type === 'sec') {
+        offset = Math.PI/2;
+        period = 2 * Math.PI / Math.abs(B);
+      } else if (type === 'csc') {
+        offset = 0;
+        period = 2 * Math.PI / Math.abs(B);
+      }
+      
+      var baseAsymptote = (offset - C) / B;
+      var n = Math.floor((xMin - baseAsymptote) / period);
+      
+      for (var i = n; i <= n + Math.ceil((xMax - xMin) / period) + 2; i++) {
+        var x = baseAsymptote + i * period;
+        if (x >= xMin && x <= xMax) {
+          positions.push(x);
+        }
+      }
+      
+      return positions;
+    }
+  `;
+
+  // Plot each trigonometric function
+  functions.forEach((func: any, index: number) => {
+    const {
+      type,
+      transformation = {},
+      color = "#0066cc",
+      strokeWidth = 2,
+      name,
+      domain,
+      dash = 0,
+      showAsymptotes = false,
+    } = func;
+
+    // Create function curve
+    code += `
+    // Function ${index + 1}: ${type}
+    (function() {
+      var funcColor = '${color}';
+      var transformation = ${JSON.stringify(transformation)};
+      var domain = ${domain ? JSON.stringify(domain) : 'null'};
+      var strokeWidth = ${strokeWidth};
+      var dash = ${dash};
+      
+      var f = function(x) {
+        if (domain && (x < domain[0] || x > domain[1])) return NaN;
+        return getTrigFunction('${type}', x, transformation);
+      };
+      
+      var curve = board.create('functiongraph', [f], {
+        strokeColor: funcColor,
+        strokeWidth: strokeWidth,
+        dash: dash,
+        name: '${name || `${type}${index + 1}`}'
+      });
+    `;
+
+    // Add asymptotes if requested and applicable
+    if (showAsymptotes && ['tan', 'cot', 'sec', 'csc'].includes(type)) {
+      code += `
+      // Add vertical asymptotes
+      var asymptotes = getAsymptotePositions('${type}', transformation, ${boundingBox[0]}, ${boundingBox[2]});
+      asymptotes.forEach(function(x) {
+        board.create('line', [
+          [x, ${boundingBox[3]}], [x, ${boundingBox[1]}]
+        ], {
+          strokeColor: funcColor,
+          strokeWidth: 1,
+          dash: 2,
+          opacity: 0.5,
+          straightFirst: false,
+          straightLast: false
+        });
+      });
+      `;
+    }
+
+    code += `
+    })();
+    `;
+  });
+
+  // Analysis options
+  if (analysisOptions.showPeriodMarkers) {
+    code += `
+    // Add period markers
+    ${JSON.stringify(functions)}.forEach(function(func, index) {
+      var period = getPeriod(func.type, func.transformation ? func.transformation.frequency : 1);
+      var phaseShift = func.transformation ? func.transformation.phaseShift || 0 : 0;
+      var frequency = func.transformation ? func.transformation.frequency || 1 : 1;
+      var startX = (0 - phaseShift) / frequency;
+      
+      for (var i = -5; i <= 5; i++) {
+        var x = startX + i * period;
+        if (x >= ${boundingBox[0]} && x <= ${boundingBox[2]}) {
+          board.create('line', [
+            [x, -0.1], [x, 0.1]
+          ], {
+            strokeColor: func.color || '#666666',
+            strokeWidth: 1,
+            straightFirst: false,
+            straightLast: false
+          });
+          board.create('text', [x, -0.3, i === 0 ? '0' : (i > 0 ? '+' + i + 'T' : i + 'T')], {
+            fontSize: 10,
+            color: func.color || '#666666',
+            anchorX: 'middle'
+          });
+        }
+      }
+    });
+    `;
+  }
+
+  if (analysisOptions.showAmplitudeLines) {
+    code += `
+    // Add amplitude reference lines
+    ${JSON.stringify(functions)}.forEach(function(func) {
+      var amplitude = func.transformation ? func.transformation.amplitude || 1 : 1;
+      var verticalShift = func.transformation ? func.transformation.verticalShift || 0 : 0;
+      
+      if (amplitude !== 0) {
+        var maxY = amplitude + verticalShift;
+        var minY = -amplitude + verticalShift;
+        
+        board.create('line', [
+          [${boundingBox[0]}, maxY], [${boundingBox[2]}, maxY]
+        ], {
+          strokeColor: func.color || '#999999',
+          strokeWidth: 1,
+          dash: 1,
+          opacity: 0.7,
+          straightFirst: false,
+          straightLast: false
+        });
+        
+        board.create('line', [
+          [${boundingBox[0]}, minY], [${boundingBox[2]}, minY]
+        ], {
+          strokeColor: func.color || '#999999',
+          strokeWidth: 1,
+          dash: 1,
+          opacity: 0.7,
+          straightFirst: false,
+          straightLast: false
+        });
+      }
+    });
+    `;
+  }
+
+  if (analysisOptions.showUnitCircle) {
+    code += `
+    // Add unit circle reference
+    var circle = board.create('circle', [[0, 0], 1], {
+      strokeColor: '#cccccc',
+      strokeWidth: 1,
+      dash: 2,
+      fillColor: 'transparent'
+    });
+    `;
+  }
+
+  // Add additional points
+  if (points && points.length > 0) {
+    points.forEach((point: any, index: number) => {
+      code += `
+    board.create('point', [${point.x}, ${point.y}], {
+      size: ${point.size || 3},
+      fillColor: '${point.color || '#ff0000'}',
+      strokeColor: '${point.color || '#ff0000'}',
+      name: '${point.name || `P${index + 1}`}',
+      showInfobox: true
+    });
+    `;
+    });
+  }
+
+  // Add unit markers for radians/degrees
+  if (xAxisUnit === "radians") {
+    code += `
+    // Add radian markers
+    var radianMarkers = [-2*Math.PI, -Math.PI, -Math.PI/2, Math.PI/2, Math.PI, 2*Math.PI];
+    var radianLabels = ['-2π', '-π', '-π/2', 'π/2', 'π', '2π'];
+    
+    radianMarkers.forEach(function(x, i) {
+      if (x >= ${boundingBox[0]} && x <= ${boundingBox[2]}) {
+        board.create('point', [x, 0], {
+          size: 1,
+          fillColor: '#666666',
+          strokeColor: '#666666',
+          name: '',
+          fixed: true
+        });
+        board.create('text', [x, -0.3, radianLabels[i]], {
+          fontSize: 12,
+          color: '#666666',
+          anchorX: 'middle'
+        });
+      }
+    });
+    `;
+  }
+
+  code += `
+    return board;
   `;
 
   return code;

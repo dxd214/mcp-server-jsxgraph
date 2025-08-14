@@ -22,6 +22,7 @@ describe("sdk API", () => {
       "conic-section",
       "polynomial-steps",
       "number-line-inequality",
+      "trigonometric-analysis",
     ]);
   });
 

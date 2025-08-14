@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   JSXGraphThemeSchema,
   JSXGraphBackgroundColorSchema,
@@ -27,7 +27,7 @@ const InequalityDataSchema = z.object({
 });
 
 // Number line inequality input schema
-const schema = {
+const schema = z.object({
   inequalities: z
     .array(InequalityDataSchema)
     .describe("Array of inequalities to plot on the number line. Each inequality defines a region on the line.")
@@ -75,7 +75,7 @@ const schema = {
   showNavigation: ShowNavigationSchema,
   zoom: ZoomSchema,
   pan: PanSchema,
-};
+});
 
 // Number line inequality tool descriptor
 const tool = {

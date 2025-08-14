@@ -19,6 +19,7 @@ const CHART_TYPE_MAP = {
   generate_conic_section: "conic-section",
   generate_polynomial_steps: "polynomial-steps",
   generate_number_line_inequality: "number-line-inequality",
+  generate_trigonometric_analysis: "trigonometric-analysis",
 } as const;
 
 // JSXGraph chart types
@@ -36,6 +37,7 @@ const JSXGRAPH_CHARTS = new Set([
   "conic-section",
   "polynomial-steps",
   "number-line-inequality",
+  "trigonometric-analysis",
 ]);
 
 /**
@@ -58,7 +60,9 @@ export async function callTool(tool: string, args: object = {}) {
 
     if (schema) {
       // Use safeParse instead of parse and try-catch.
-      const result = z.object(schema).safeParse(args);
+      const result = (typeof schema === 'object' && 'safeParse' in schema) 
+        ? schema.safeParse(args) 
+        : z.object(schema).safeParse(args);
       if (!result.success) {
         throw new McpError(
           ErrorCode.InvalidParams,
@@ -96,6 +100,7 @@ export async function callTool(tool: string, args: object = {}) {
           "equation-system": "equation-system",
           "conic-section": "conic-section",
           "number-line-inequality": "number-line-inequality",
+          "trigonometric-analysis": "trigonometric-analysis",
         };
 
         const jsxGraphConfig: JSXGraphConfig = {
@@ -173,7 +178,9 @@ export async function callToolWithPlaceholder(
       // Validate input using Zod
       const schema = Charts[chartType].schema;
       if (schema) {
-        const result = z.object(schema).safeParse(args);
+        const result = (typeof schema === 'object' && 'safeParse' in schema) 
+        ? schema.safeParse(args) 
+        : z.object(schema).safeParse(args);
         if (!result.success) {
           throw new McpError(
             ErrorCode.InvalidParams,
@@ -204,6 +211,7 @@ export async function callToolWithPlaceholder(
           "equation-system": "equation-system",
           "conic-section": "conic-section",
           "number-line-inequality": "number-line-inequality",
+          "trigonometric-analysis": "trigonometric-analysis",
         };
 
         const jsxGraphConfig: JSXGraphConfig = {
