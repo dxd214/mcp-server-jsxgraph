@@ -1,10 +1,9 @@
 /**
  * Polynomial Function Step-by-Step Analysis Chart
- * 多项式函数分步骤分析图表
  */
 
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   KeepAspectRatioSchema,
@@ -174,7 +173,7 @@ const tool = {
     Returns JSXGraph JavaScript code that can be embedded in HTML.
     Supports animations, step navigation, and visual annotations.
     Perfect for educational purposes and function analysis demonstrations.`,
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const polynomialSteps = {

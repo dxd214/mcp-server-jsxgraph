@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -150,7 +150,7 @@ const tool = {
   name: "generate_linear_system",
   description:
     "Generate linear equations and inequality systems using JSXGraph. Visualize systems of linear equations, linear inequalities with feasible regions, linear programming problems with objective functions, and find intersection points. Perfect for solving systems of equations and linear optimization problems.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const linearSystem = {

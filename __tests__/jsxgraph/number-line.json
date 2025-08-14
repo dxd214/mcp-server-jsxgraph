@@ -1,0 +1,323 @@
+{
+  "name": "generate_number_line",
+  "description": "Create enhanced number line visualizations with advanced inequality support. Features: open/closed circles, interval shading, arrows, compound inequalities (AND/OR), absolute value inequalities, set notation, interval notation, and step-by-step solution workspace. Perfect for visualizing complex inequality solutions.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "range": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 2,
+        "maxItems": 2,
+        "default": [-10, 10],
+        "description": "Range of the number line [min, max], default is [-10, 10]"
+      },
+      "tickInterval": {
+        "type": "number",
+        "default": 1,
+        "description": "Interval between tick marks on the number line"
+      },
+      "showTicks": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show tick marks on the number line"
+      },
+      "showNumbers": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show numbers below tick marks"
+      },
+      "points": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number",
+              "description": "Position on the number line"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["open", "closed"],
+              "default": "closed",
+              "description": "Type of point: open circle (○) or closed circle (●)"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the point"
+            },
+            "size": {
+              "type": "number",
+              "default": 6,
+              "description": "Size of the point"
+            },
+            "label": {
+              "type": "string",
+              "description": "Label to display above/below the point"
+            }
+          },
+          "required": ["value"]
+        },
+        "description": "Individual points to plot on the number line"
+      },
+      "intervals": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "start": {
+              "type": "number",
+              "description": "Start value of the interval"
+            },
+            "end": {
+              "type": "number",
+              "description": "End value of the interval"
+            },
+            "startType": {
+              "type": "string",
+              "enum": ["open", "closed"],
+              "default": "closed",
+              "description": "Type of start point"
+            },
+            "endType": {
+              "type": "string",
+              "enum": ["open", "closed"],
+              "default": "closed",
+              "description": "Type of end point"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color of the interval shading"
+            },
+            "opacity": {
+              "type": "number",
+              "default": 0.3,
+              "description": "Opacity of the interval shading (0-1)"
+            },
+            "arrow": {
+              "type": "string",
+              "enum": ["none", "left", "right", "both"],
+              "default": "none",
+              "description": "Arrow direction: none, left (←), right (→), or both (↔)"
+            },
+            "label": {
+              "type": "string",
+              "description": "Label for the interval"
+            }
+          },
+          "required": ["start", "end"]
+        },
+        "description": "Intervals (shaded regions) to display on the number line"
+      },
+      "inequalities": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["simple", "compound", "absolute"],
+              "default": "simple",
+              "description": "Type of inequality: simple, compound, or absolute value"
+            },
+            "expression": {
+              "type": "string",
+              "description": "Inequality expression, e.g., 'x > 2', 'x < -1 or x > 3', '|x| < 2'"
+            },
+            "expressions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Array of inequality expressions for compound inequalities"
+            },
+            "operator": {
+              "type": "string",
+              "enum": ["and", "or"],
+              "description": "Logical operator for compound inequalities: 'and' or 'or'"
+            },
+            "color": {
+              "type": "string",
+              "default": "#0066cc",
+              "description": "Color for this inequality"
+            },
+            "opacity": {
+              "type": "number",
+              "default": 0.3,
+              "description": "Opacity of the shading (0-1)"
+            },
+            "label": {
+              "type": "string",
+              "description": "Custom label for the inequality"
+            }
+          },
+          "required": ["expression"]
+        },
+        "description": "Compound inequalities to solve and visualize automatically"
+      },
+      "showSetNotation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to display set notation {x | condition}"
+      },
+      "showIntervalNotation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to display interval notation [a, b], (a, b), etc."
+      },
+      "showWorkSpace": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to show step-by-step solution workspace"
+      },
+      "autoAnalyze": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to automatically analyze and parse inequality expressions"
+      },
+      "lineColor": {
+        "type": "string",
+        "default": "#000000",
+        "description": "Color of the main number line"
+      },
+      "lineWidth": {
+        "type": "number",
+        "default": 2,
+        "description": "Width of the main number line"
+      },
+      "style": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": ["default", "dark", "light"],
+            "default": "default",
+            "description": "Set the theme for the math chart."
+          },
+          "backgroundColor": {
+            "type": "string",
+            "default": "#ffffff",
+            "description": "Background color of the math chart, such as '#fff'."
+          },
+          "grid": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show grid lines."
+          },
+          "axis": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether to show axis lines."
+          }
+        },
+        "description": "Custom style configuration for the chart."
+      },
+      "width": {
+        "type": "number",
+        "default": 800,
+        "description": "Set the width of the math chart, default is 800."
+      },
+      "height": {
+        "type": "number",
+        "default": 600,
+        "description": "Set the height of the math chart, default is 600."
+      },
+      "title": {
+        "type": "string",
+        "description": "Set the title of the math chart."
+      },
+      "axisXTitle": {
+        "type": "string",
+        "default": "x",
+        "description": "Label for X axis"
+      },
+      "axisYTitle": {
+        "type": "string",
+        "default": "y",
+        "description": "Label for Y axis"
+      },
+      "boundingBox": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 4,
+        "maxItems": 4,
+        "default": [-10, 10, 10, -10],
+        "description": "The bounding box for the chart [xmin, ymax, xmax, ymin], default is [-10, 10, 10, -10]."
+      },
+      "keepAspectRatio": {
+        "type": "boolean",
+        "default": false,
+        "description": "Whether to keep aspect ratio."
+      },
+      "showCopyright": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show JSXGraph copyright."
+      },
+      "showNavigation": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show navigation controls."
+      },
+      "zoom": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "factorX": {
+            "type": "number",
+            "default": 1.25
+          },
+          "factorY": {
+            "type": "number",
+            "default": 1.25
+          },
+          "wheel": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "min": {
+            "type": "number",
+            "default": 0.1
+          },
+          "max": {
+            "type": "number",
+            "default": 10
+          }
+        },
+        "description": "Zoom configuration for the chart."
+      },
+      "pan": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "needShift": {
+            "type": "boolean",
+            "default": false
+          },
+          "needTwoFingers": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "description": "Pan configuration for the chart."
+      }
+    }
+  }
+}
+

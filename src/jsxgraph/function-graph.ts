@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -120,7 +120,7 @@ const tool = {
   name: "generate_function_graph",
   description:
     "Generate a mathematical function graph using JSXGraph. Supports plotting multiple functions, derivatives, integrals, tangent lines, and points. Ideal for visualizing mathematical functions like sin(x), x^2, exp(x), etc.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const functionGraph = {

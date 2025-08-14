@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -150,7 +150,7 @@ const tool = {
   name: "generate_vector_field",
   description:
     "Generate vector field visualizations using JSXGraph. Display 2D vector fields with arrows showing direction and magnitude at each point. Supports streamlines, singular points, and color-coded magnitudes. Ideal for visualizing gradient fields, flow fields, electromagnetic fields, etc.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const vectorField = {

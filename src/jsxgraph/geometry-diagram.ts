@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -244,7 +244,7 @@ const tool = {
   name: "generate_geometry_diagram",
   description:
     "Generate interactive geometry diagrams using JSXGraph. Create points, lines, circles, polygons, angles, and geometric constructions. Perfect for visualizing geometric concepts, theorems, and constructions like triangles, perpendiculars, angle bisectors, etc.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const geometryDiagram = {

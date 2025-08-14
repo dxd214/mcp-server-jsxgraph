@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -157,7 +157,7 @@ const tool = {
   name: "generate_function_transformation",
   description:
     "Generate function transformations using JSXGraph. Visualize translations, scaling, reflections, absolute value, inverse functions, and function composition. Shows how functions change under various transformations with optional animation and step-by-step visualization.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const functionTransformation = {

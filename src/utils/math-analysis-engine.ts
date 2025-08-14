@@ -1,10 +1,9 @@
 /**
- * 统一数学分析引擎
- * 为所有JSXGraph工具提供数学计算和分析支持
+ * Unified Mathematical Analysis Engine
+ * Provides mathematical calculation and analysis support for all JSXGraph tools
  */
 
-// ============== 类型定义 ==============
-
+// ============== Type Definitions ==============
 export interface Point2D {
   x: number;
   y: number;
@@ -19,48 +18,6 @@ export interface Interval {
   intervalNotation?: string;
 }
 
-export interface FunctionProperties {
-  domain: string;
-  range?: string;
-  intercepts: {
-    x: number[];
-    y: number;
-  };
-  extrema: Array<{
-    type: 'maximum' | 'minimum';
-    x: number;
-    y: number;
-    isLocal: boolean;
-  }>;
-  asymptotes: Array<{
-    type: 'vertical' | 'horizontal' | 'oblique';
-    equation: string;
-    value?: number;
-  }>;
-  monotonicity: Array<{
-    interval: string;
-    direction: 'increasing' | 'decreasing' | 'constant';
-  }>;
-  concavity: Array<{
-    interval: string;
-    type: 'concave_up' | 'concave_down';
-  }>;
-  inflectionPoints: Point2D[];
-  periodicity?: {
-    isPeriodic: boolean;
-    period?: number;
-  };
-  symmetry?: {
-    type: 'even' | 'odd' | 'none';
-    axis?: string; // 对称轴
-  };
-  continuity: Array<{
-    interval: string;
-    isContinuous: boolean;
-    discontinuities?: Point2D[];
-  }>;
-}
-
 export interface InequalityResult {
   type: 'simple' | 'compound' | 'absolute';
   operator: 'and' | 'or';
@@ -73,42 +30,75 @@ export interface InequalityResult {
   };
 }
 
+export interface FunctionProperties {
+  domain: string;
+  range?: string;
+  intercepts: {
+    x: number[];
+    y: number;
+  };
+  extrema: Array<{
+    x: number;
+    y: number;
+    type: 'maximum' | 'minimum' | 'saddle';
+  }>;
+  asymptotes: Array<{
+    type: 'vertical' | 'horizontal' | 'oblique';
+    equation: string;
+    value?: number;
+  }>;
+  inflectionPoints: Array<{
+    x: number;
+    y: number;
+  }>;
+  monotonicity: Array<{
+    interval: string;
+    direction: 'increasing' | 'decreasing' | 'constant';
+  }>;
+  concavity: Array<{
+    interval: string;
+    type: 'concave_up' | 'concave_down';
+  }>;
+  symmetry?: {
+    type: 'even' | 'odd' | 'none';
+    axis?: string; // Symmetry axis
+  };
+  periodicity?: {
+    isPeriodic: boolean;
+    period?: number;
+  };
+}
+
 export interface PolynomialAnalysis {
   degree: number;
   leadingCoefficient: number;
-  coefficients: number[];
-  roots: Array<{
-    value: number;
+  zeros: Array<{
+    x: number;
     multiplicity: number;
-    isReal: boolean;
+    behavior: 'crosses' | 'touches';
   }>;
-  factorization: {
-    factors: string[];
-    expanded: string;
-    simplified: string;
-  };
+  yIntercept: number;
+  criticalPoints: Array<{
+    x: number;
+    y: number;
+    type: 'maximum' | 'minimum' | 'inflection';
+  }>;
   endBehavior: {
     leftEnd: 'up' | 'down';
     rightEnd: 'up' | 'down';
   };
-  turningPoints: Point2D[];
-  yIntercept: number;
-  criticalPoints: Point2D[];
-  syntheticDivision?: {
-    divisor: number;
-    quotient: number[];
-    remainder: number;
-  };
+  expandedForm: string;
+  factoredForm?: string;
 }
 
-// ============== 数学分析引擎类 ==============
-
+// ============== Mathematical Analysis Engine Class ==============
 export class MathAnalysisEngine {
-  
-  // ============== 函数属性分析 ==============
-  
+  private static readonly TOLERANCE = 1e-10;
+  private static readonly MAX_ITERATIONS = 1000;
+
+  // ============== Function Properties Analysis ==============
   /**
-   * 分析函数的所有属性
+   * Analyze all properties of a function
    */
   static analyzeFunctionProperties(
     expression: string,
@@ -120,106 +110,98 @@ export class MathAnalysisEngine {
       findInflection?: boolean;
     } = {}
   ): FunctionProperties {
-    const { domain = [-10, 10], analyzeRange = true, findExtrema = true, findAsymptotes = true, findInflection = true } = options;
-    
-    // 创建函数对象
-    const func = this.createFunction(expression);
-    
-    // 基础分析
-    const intercepts = this.findIntercepts(func, domain);
-    const extrema = findExtrema ? this.findExtrema(func, domain) : [];
-    const asymptotes = findAsymptotes ? this.findAsymptotes(func, expression, domain) : [];
-    const monotonicity = this.analyzeMonotonicity(func, domain);
-    const concavity = this.analyzeConcavity(func, domain);
-    const inflectionPoints = findInflection ? this.findInflectionPoints(func, domain) : [];
-    
-    return {
-      domain: this.analyzeDomain(expression),
-      range: analyzeRange ? this.analyzeRange(func, domain) : undefined,
-      intercepts,
-      extrema,
-      asymptotes,
-      monotonicity,
-      concavity,
-      inflectionPoints,
-      periodicity: this.analyzePeriodicity(expression),
-      symmetry: this.analyzeSymmetry(func, expression),
-      continuity: this.analyzeContinuity(func, domain),
-    };
+    try {
+      // Create function object
+      const func = this.createFunction(expression);
+      
+      // Basic analysis
+      const domain = this.analyzeDomain(expression, options.domain);
+      const intercepts = this.findIntercepts(func, expression);
+      const asymptotes = options.findAsymptotes ? this.findAsymptotes(expression) : [];
+      const extrema = options.findExtrema ? this.findExtrema(func, expression, options.domain || [-10, 10]) : [];
+      const inflectionPoints = options.findInflection ? this.findInflectionPoints(func, expression, options.domain || [-10, 10]) : [];
+      const monotonicity = this.analyzeMonotonicity(func, expression, options.domain || [-10, 10]);
+      const concavity = this.analyzeConcavity(func, expression, options.domain || [-10, 10]);
+      const symmetry = this.analyzeSymmetry(func, expression);
+      const periodicity = this.analyzePeriodicity(expression);
+
+      return {
+        domain,
+        intercepts,
+        extrema,
+        asymptotes,
+        inflectionPoints,
+        monotonicity,
+        concavity,
+        symmetry,
+        periodicity,
+      };
+    } catch (error) {
+      console.error('Function analysis failed:', error);
+      return {
+        domain: 'Error in analysis',
+        intercepts: { x: [], y: 0 },
+        extrema: [],
+        asymptotes: [],
+        inflectionPoints: [],
+        monotonicity: [],
+        concavity: [],
+      };
+    }
   }
 
   /**
-   * 创建JavaScript函数对象
+   * Create JavaScript function object
    */
   private static createFunction(expression: string): (x: number) => number {
+    // Check for empty or invalid expressions
+    if (!expression || typeof expression !== 'string') {
+      throw new Error('Invalid function expression');
+    }
+
+    // Safely create function, replace mathematical functions
+    let safeExpression = expression
+      .replace(/Math\.sin/g, 'Math.sin')
+      .replace(/Math\.cos/g, 'Math.cos')
+      .replace(/Math\.tan/g, 'Math.tan')
+      .replace(/Math\.exp/g, 'Math.exp')
+      .replace(/Math\.log/g, 'Math.log')
+      .replace(/Math\.sqrt/g, 'Math.sqrt')
+      // Handle exponent operator - fix unary minus precedence issue
+      .replace(/-(\d+\.?\d*)\^/g, '(-$1)**') // Fix -number^ case
+      .replace(/\^/g, '**'); // Convert all remaining ^ to **
+
+    // Check if contains invalid identifiers
+    if (!/^[x\s\d\+\-\*\/\(\)\.\,\^Math\.\w]+$/.test(safeExpression)) {
+      throw new Error('Function contains invalid characters');
+    }
+
     try {
-      // 检查空或无效表达式
-      if (!expression || expression.trim() === '') {
-        return (x: number) => 0;
-      }
-
-      // 安全地创建函数，替换数学函数
-      let safeExpression = expression
-        .replace(/\bsin\b/g, 'Math.sin')
-        .replace(/\bcos\b/g, 'Math.cos')
-        .replace(/\btan\b/g, 'Math.tan')
-        .replace(/\blog\b/g, 'Math.log10')
-        .replace(/\bln\b/g, 'Math.log')
-        .replace(/\bexp\b/g, 'Math.exp')
-        .replace(/\bsqrt\b/g, 'Math.sqrt')
-        .replace(/\babs\b/g, 'Math.abs')
-        .replace(/\bfloor\b/g, 'Math.floor')
-        .replace(/\bceil\b/g, 'Math.ceil')
-        .replace(/\bpi\b/g, 'Math.PI')
-        .replace(/\be\b/g, 'Math.E')
-        .replace(/\^/g, '**'); // 指数运算符
-
-      // 检查是否包含无效的标识符
-      if (/\b[a-zA-Z_][a-zA-Z0-9_]*\b/.test(safeExpression) && 
-          !safeExpression.includes('Math.') && 
-          !safeExpression.includes('x')) {
-        // 包含无效标识符，返回常数函数
-        return (x: number) => 0;
-      }
-
-      // 使用更兼容的方式传递Math对象
-      const globalMath = Math;
-      const func = new Function('x', 'globalMath', `
-        const Math = globalMath;
-        return ${safeExpression};
-      `) as (x: number, math: typeof Math) => number;
-      
-      const wrappedFunc = (x: number) => func(x, globalMath);
-      
-      // 测试函数是否工作
-      wrappedFunc(0);
-      
-      return wrappedFunc;
+      return new Function('x', `return ${safeExpression}`) as (x: number) => number;
     } catch (error) {
-      console.warn(`无法解析表达式: ${expression}`, error);
-      return (x: number) => 0; // 返回默认函数
+      throw new Error(`Failed to create function: ${error}`);
     }
   }
 
   /**
-   * 分析定义域
+   * Analyze domain
    */
-  private static analyzeDomain(expression: string): string {
-    // 简化的定义域分析
+  private static analyzeDomain(expression: string, domain?: [number, number]): string {
+    // Simplified domain analysis
     if (expression.includes('sqrt') || expression.includes('√')) {
-      return "需要根号内表达式≥0";
+      return "Root must be non-negative";
     }
     if (expression.includes('/') || expression.includes('÷')) {
-      return "分母不能为0";
+      return "Denominator cannot be zero";
     }
     if (expression.includes('log') || expression.includes('ln')) {
-      return "对数真数必须>0";
+      return "Logarithm argument must be positive";
     }
-    return "ℝ (所有实数)";
+    return "ℝ (all real numbers)";
   }
 
   /**
-   * 分析值域
+   * Analyze range
    */
   private static analyzeRange(func: (x: number) => number, domain: [number, number]): string {
     const [start, end] = domain;
@@ -235,36 +217,36 @@ export class MathAnalysisEngine {
           max = Math.max(max, y);
         }
       } catch (e) {
-        // 跳过无效点
+        // Skip invalid points
       }
     }
 
     if (min === Number.POSITIVE_INFINITY) {
-      return "无法确定值域";
+      return "Range cannot be determined";
     }
 
     return `[${min.toFixed(2)}, ${max.toFixed(2)}]`;
   }
 
   /**
-   * 找到函数的截距
+   * Find intercepts of a function
    */
-  private static findIntercepts(func: (x: number) => number, domain: [number, number]): { x: number[]; y: number } {
+  private static findIntercepts(func: (x: number) => number, expression: string): { x: number[]; y: number } {
     const xIntercepts: number[] = [];
-    const [start, end] = domain;
+    const [start, end] = [-10, 10]; // Default domain for intercepts
     const step = 0.01;
 
-    // 检查x=0处的值
+    // Check value at x=0
     try {
       const valueAtZero = func(0);
       if (Math.abs(valueAtZero) < 1e-12) {
         xIntercepts.push(0);
       }
     } catch (e) {
-      // x=0不在定义域内
+      // x=0 is not in the domain
     }
 
-    // 找x截距（零点）- 符号变化法
+    // Find x-intercepts (zeros) - sign change method
     let prevY: number | null = null;
     try {
       prevY = func(start);
@@ -276,15 +258,15 @@ export class MathAnalysisEngine {
       try {
         const currentY = func(x);
         if (prevY !== null && Number.isFinite(prevY) && Number.isFinite(currentY)) {
-          // 符号变化检测零点
+          // Sign change detection for zeros
           if (prevY * currentY < 0) {
-            // 使用二分法精确找零点
+            // Use bisection method for precise zero finding
             const root = this.bisectionMethod(func, x - step, x, 1e-6);
             if (root !== null && !xIntercepts.some(existing => Math.abs(existing - root) < 1e-6)) {
               xIntercepts.push(Number.parseFloat(root.toFixed(6)));
             }
           }
-          // 检查是否接近零（处理重根）
+          // Check if close to zero (handle multiple roots)
           else if (Math.abs(currentY) < 1e-12 && !xIntercepts.some(existing => Math.abs(existing - x) < 1e-6)) {
             xIntercepts.push(Number.parseFloat(x.toFixed(6)));
           }
@@ -295,7 +277,7 @@ export class MathAnalysisEngine {
       }
     }
 
-    // y截距
+    // y-intercept
     let yIntercept = 0;
     try {
       yIntercept = func(0);
@@ -304,13 +286,13 @@ export class MathAnalysisEngine {
     }
 
     return {
-      x: [...new Set(xIntercepts.map(x => Number.parseFloat(x.toFixed(6))))], // 去重并格式化
+      x: [...new Set(xIntercepts.map(x => Number.parseFloat(x.toFixed(6))))], // Remove duplicates and format
       y: Number.isFinite(yIntercept) ? yIntercept : 0,
     };
   }
 
   /**
-   * 二分法求根
+   * Bisection method for finding roots
    */
   private static bisectionMethod(
     func: (x: number) => number,
@@ -348,23 +330,23 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 找到函数的极值点
+   * Find extrema of a function
    */
-  private static findExtrema(func: (x: number) => number, domain: [number, number]): Array<{ type: 'maximum' | 'minimum'; x: number; y: number; isLocal: boolean }> {
+  private static findExtrema(func: (x: number) => number, expression: string, domain: [number, number]): Array<{ type: 'maximum' | 'minimum'; x: number; y: number; isLocal: boolean }> {
     const extrema: Array<{ type: 'maximum' | 'minimum'; x: number; y: number; isLocal: boolean }> = [];
     const [start, end] = domain;
     const step = 0.1;
-    const h = 1e-5; // 数值微分步长
+    const h = 1e-5; // Numerical differentiation step
 
     for (let x = start + step; x < end; x += step) {
       try {
-        // 数值计算一阶导数
+        // Numerical calculation of first derivative
         const derivative = (func(x + h) - func(x - h)) / (2 * h);
         
-        // 数值计算二阶导数
+        // Numerical calculation of second derivative
         const secondDerivative = (func(x + h) - 2 * func(x) + func(x - h)) / (h * h);
 
-        // 检查临界点（导数接近0）
+        // Check critical points (derivative close to 0)
         if (Math.abs(derivative) < 0.01) {
           const y = func(x);
           if (Number.isFinite(y)) {
@@ -376,7 +358,7 @@ export class MathAnalysisEngine {
           }
         }
       } catch (e) {
-        // 跳过
+        // Skip
       }
     }
 
@@ -384,25 +366,24 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 找到渐近线
+   * Find asymptotes
    */
   private static findAsymptotes(
-    func: (x: number) => number,
-    expression: string,
-    domain: [number, number]
+    expression: string
   ): Array<{ type: 'vertical' | 'horizontal' | 'oblique'; equation: string; value?: number }> {
     const asymptotes: Array<{ type: 'vertical' | 'horizontal' | 'oblique'; equation: string; value?: number }> = [];
 
-    // 垂直渐近线（检查函数趋向无穷大的点）
-    const [start, end] = domain;
+    // Vertical asymptotes (check points where function tends to infinity)
+    const [start, end] = [-10, 10]; // Default domain for asymptotes
     const step = 0.1;
+    
+    // Create a temporary function for analysis
+    const tempFunc = this.createFunction(expression);
     
     for (let x = start; x <= end; x += step) {
       try {
-        const leftLimit = func(x - 0.001);
-        const rightLimit = func(x + 0.001);
-        
-        if (Math.abs(leftLimit) > 1000 || Math.abs(rightLimit) > 1000) {
+        const value = tempFunc(x);
+        if (!Number.isFinite(value) || Math.abs(value) > 1e6) {
           asymptotes.push({
             type: 'vertical',
             equation: `x = ${x.toFixed(2)}`,
@@ -410,7 +391,7 @@ export class MathAnalysisEngine {
           });
         }
       } catch (e) {
-        // 可能的垂直渐近线
+        // Possible vertical asymptotes
         asymptotes.push({
           type: 'vertical',
           equation: `x = ${x.toFixed(2)}`,
@@ -419,32 +400,31 @@ export class MathAnalysisEngine {
       }
     }
 
-    // 水平渐近线（检查x趋向±∞时的极限）
+    // Horizontal asymptotes (check limits as x tends to ±∞)
     try {
-      const leftLimit = func(-1000);
-      const rightLimit = func(1000);
+      const leftLimit = tempFunc(-1000);
+      const rightLimit = tempFunc(1000);
       
-      if (Number.isFinite(leftLimit) && Number.isFinite(rightLimit)) {
-        if (Math.abs(leftLimit - rightLimit) < 0.1) {
-          asymptotes.push({
-            type: 'horizontal',
-            equation: `y = ${rightLimit.toFixed(2)}`,
-            value: rightLimit,
-          });
-        }
+      if (Number.isFinite(leftLimit) && Math.abs(leftLimit - rightLimit) < 1e-3) {
+        asymptotes.push({
+          type: 'horizontal',
+          equation: `y = ${leftLimit.toFixed(2)}`,
+          value: leftLimit,
+        });
       }
     } catch (e) {
-      // 无水平渐近线
+      // No horizontal asymptotes
     }
 
     return asymptotes;
   }
 
   /**
-   * 分析单调性
+   * Analyze monotonicity
    */
   private static analyzeMonotonicity(
     func: (x: number) => number,
+    expression: string,
     domain: [number, number]
   ): Array<{ interval: string; direction: 'increasing' | 'decreasing' | 'constant' }> {
     const monotonicity: Array<{ interval: string; direction: 'increasing' | 'decreasing' | 'constant' }> = [];
@@ -457,7 +437,7 @@ export class MathAnalysisEngine {
 
     for (let x = start; x <= end; x += step) {
       try {
-        // 数值微分
+        // Numerical differentiation
         const derivative = (func(x + h) - func(x - h)) / (2 * h);
         
         let direction: 'increasing' | 'decreasing' | 'constant';
@@ -472,7 +452,7 @@ export class MathAnalysisEngine {
         if (currentDirection === null) {
           currentDirection = direction;
         } else if (currentDirection !== direction) {
-          // 单调性发生变化
+          // Monotonicity changed
           monotonicity.push({
             interval: `[${intervalStart.toFixed(2)}, ${x.toFixed(2)}]`,
             direction: currentDirection,
@@ -481,11 +461,11 @@ export class MathAnalysisEngine {
           intervalStart = x;
         }
       } catch (e) {
-        // 跳过
+        // Skip
       }
     }
 
-    // 添加最后一段
+    // Add the last interval
     if (currentDirection !== null) {
       monotonicity.push({
         interval: `[${intervalStart.toFixed(2)}, ${end.toFixed(2)}]`,
@@ -497,10 +477,11 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 分析凹凸性
+   * Analyze concavity
    */
   private static analyzeConcavity(
     func: (x: number) => number,
+    expression: string,
     domain: [number, number]
   ): Array<{ interval: string; type: 'concave_up' | 'concave_down' }> {
     const concavity: Array<{ interval: string; type: 'concave_up' | 'concave_down' }> = [];
@@ -513,7 +494,7 @@ export class MathAnalysisEngine {
 
     for (let x = start; x <= end; x += step) {
       try {
-        // 数值计算二阶导数
+        // Numerical calculation of second derivative
         const secondDerivative = (func(x + h) - 2 * func(x) + func(x - h)) / (h * h);
         
         const concaveType: 'concave_up' | 'concave_down' = secondDerivative > 0 ? 'concave_up' : 'concave_down';
@@ -521,7 +502,7 @@ export class MathAnalysisEngine {
         if (currentConcavity === null) {
           currentConcavity = concaveType;
         } else if (currentConcavity !== concaveType) {
-          // 凹凸性发生变化
+          // Concavity changed
           concavity.push({
             interval: `[${intervalStart.toFixed(2)}, ${x.toFixed(2)}]`,
             type: currentConcavity,
@@ -530,11 +511,11 @@ export class MathAnalysisEngine {
           intervalStart = x;
         }
       } catch (e) {
-        // 跳过
+        // Skip
       }
     }
 
-    // 添加最后一段
+    // Add the last interval
     if (currentConcavity !== null) {
       concavity.push({
         interval: `[${intervalStart.toFixed(2)}, ${end.toFixed(2)}]`,
@@ -546,9 +527,9 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 找到拐点
+   * Find inflection points
    */
-  private static findInflectionPoints(func: (x: number) => number, domain: [number, number]): Point2D[] {
+  private static findInflectionPoints(func: (x: number) => number, expression: string, domain: [number, number]): Point2D[] {
     const inflectionPoints: Point2D[] = [];
     const [start, end] = domain;
     const step = 0.1;
@@ -561,7 +542,7 @@ export class MathAnalysisEngine {
         const secondDerivative = (func(x + h) - 2 * func(x) + func(x - h)) / (h * h);
 
         if (prevSecondDerivative !== null && Number.isFinite(secondDerivative)) {
-          // 检查二阶导数符号变化
+          // Check for sign change in second derivative
           if (prevSecondDerivative * secondDerivative < 0) {
             const y = func(x);
             if (Number.isFinite(y)) {
@@ -572,7 +553,7 @@ export class MathAnalysisEngine {
         
         prevSecondDerivative = secondDerivative;
       } catch (e) {
-        // 跳过
+        // Skip
       }
     }
 
@@ -580,10 +561,10 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 分析周期性
+   * Analyze periodicity
    */
   private static analyzePeriodicity(expression: string): { isPeriodic: boolean; period?: number } {
-    // 简化的周期性检测
+    // Simplified periodicity detection
     if (expression.includes('sin') || expression.includes('cos')) {
       return { isPeriodic: true, period: 2 * Math.PI };
     }
@@ -594,20 +575,20 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 分析对称性
+   * Analyze symmetry
    */
   private static analyzeSymmetry(
     func: (x: number) => number,
     expression: string
   ): { type: 'even' | 'odd' | 'none'; axis?: string } {
-    // 简化的对称性检测
+    // Simplified symmetry detection
     try {
-      // 优先检查表达式特征
+      // Prioritize expression characteristics
       if (expression.includes('sin') && !expression.includes('cos')) {
-        return { type: 'odd', axis: '原点' };
+        return { type: 'odd', axis: 'Origin' };
       }
       if (expression.includes('cos') && !expression.includes('sin')) {
-        return { type: 'even', axis: 'y轴' };
+        return { type: 'even', axis: 'Y-axis' };
       }
 
       const testPoints = [-2, -1, -0.5, 0.5, 1, 2];
@@ -629,20 +610,20 @@ export class MathAnalysisEngine {
       }
 
       if (isEven) {
-        return { type: 'even', axis: 'y轴' };
+        return { type: 'even', axis: 'Y-axis' };
       }
       if (isOdd) {
-        return { type: 'odd', axis: '原点' };
+        return { type: 'odd', axis: 'Origin' };
       }
     } catch (e) {
-      // 检测失败
+      // Detection failed
     }
 
     return { type: 'none' };
   }
 
   /**
-   * 分析连续性
+   * Analyze continuity
    */
   private static analyzeContinuity(
     func: (x: number) => number,
@@ -659,7 +640,7 @@ export class MathAnalysisEngine {
         const rightLimit = func(x + 1e-6);
         const valueAtPoint = func(x);
 
-        // 检查间断点
+        // Check for discontinuities
         if (!Number.isFinite(valueAtPoint) || 
             Math.abs(leftLimit - rightLimit) > 1e-3 ||
             Math.abs(leftLimit - valueAtPoint) > 1e-3) {
@@ -686,13 +667,13 @@ export class MathAnalysisEngine {
     return continuity;
   }
 
-  // ============== 不等式分析 ==============
+  // ============== Inequality Analysis ==============
 
   /**
-   * 解析和处理不等式
+   * Parse and process inequalities
    */
   static parseInequality(expression: string): InequalityResult {
-    // 检测不等式类型
+    // Detect inequality type
     if (expression.includes('|')) {
       return this.parseAbsoluteInequality(expression);
     }
@@ -705,15 +686,15 @@ export class MathAnalysisEngine {
       return this.parseCompoundInequality(expression, 'and');
     }
 
-    // 简单不等式
+    // Simple inequality
     return this.parseSimpleInequality(expression);
   }
 
   /**
-   * 解析简单不等式
+   * Parse simple inequality
    */
   private static parseSimpleInequality(expression: string): InequalityResult {
-    // 处理复合不等式如 "2 < x < 5"
+    // Handle compound inequalities like "2 < x < 5"
     const compoundMatch = expression.match(
       /(-?\d+(?:\.\d+)?)\s*([<>]=?)\s*x\s*([<>]=?)\s*(-?\d+(?:\.\d+)?)/
     );
@@ -740,7 +721,7 @@ export class MathAnalysisEngine {
       };
     }
 
-    // 单侧不等式 "x > 2" 或 "x <= -1"
+    // Single-sided inequalities "x > 2" or "x <= -1"
     const singleMatch = expression.match(
       /x\s*([<>]=?)\s*(-?\d+(?:\.\d+)?)|(-?\d+(?:\.\d+)?)\s*([<>]=?)\s*x/
     );
@@ -789,7 +770,7 @@ export class MathAnalysisEngine {
           };
         }
       } else {
-        // 默认空集
+        // Default empty set
         interval = {
           start: null,
           end: null,
@@ -811,7 +792,7 @@ export class MathAnalysisEngine {
       };
     }
 
-    // 无法解析，返回空结果
+    // Cannot parse, return empty result
     return {
       type: 'simple',
       operator: 'and',
@@ -826,7 +807,7 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 解析复合不等式（AND/OR）
+   * Parse compound inequality (AND/OR)
    */
   private static parseCompoundInequality(expression: string, operator: 'and' | 'or'): InequalityResult {
     const pattern = operator === 'or' 
@@ -848,11 +829,11 @@ export class MathAnalysisEngine {
     let intervalNotation: string;
 
     if (operator === 'or') {
-      // 并集
+      // Union
       finalIntervals = intervals;
       intervalNotation = intervals.map(this.formatInterval).join(' ∪ ');
     } else {
-      // 交集
+      // Intersection
       finalIntervals = this.intersectIntervals(intervals);
       intervalNotation = finalIntervals.map(this.formatInterval).join(' ∩ ');
     }
@@ -871,10 +852,10 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 解析绝对值不等式
+   * Parse absolute value inequality
    */
   private static parseAbsoluteInequality(expression: string): InequalityResult {
-    // 简化的绝对值不等式处理
+    // Simplified absolute value inequality handling
     // |x| < a => -a < x < a
     // |x| > a => x < -a or x > a
     // |x - b| < a => b-a < x < b+a
@@ -887,7 +868,7 @@ export class MathAnalysisEngine {
       const value = Number.parseFloat(absMatch[3]);
       
       if (value < 0) {
-        // 绝对值不等式解集为空或全集
+        // Absolute value inequality solution is empty or full set
         return {
           type: 'absolute',
           operator: operator.startsWith('<') ? 'and' : 'or',
@@ -939,7 +920,7 @@ export class MathAnalysisEngine {
       };
     }
 
-    // 无法解析的绝对值不等式
+    // Unparseable absolute value inequality
     return {
       type: 'absolute',
       operator: 'and',
@@ -951,19 +932,19 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 计算区间交集
+   * Calculate interval intersection
    */
   private static intersectIntervals(intervals: Interval[]): Interval[] {
     if (intervals.length === 0) return [];
     if (intervals.length === 1) return intervals;
 
-    // 简化版交集计算
+    // Simplified intersection calculation
     let result = intervals[0];
     
     for (let i = 1; i < intervals.length; i++) {
       const current = intervals[i];
       
-      // 计算交集
+      // Calculate intersection
       const start = Math.max(result.start || -Infinity, current.start || -Infinity);
       const end = Math.min(result.end || Infinity, current.end || Infinity);
       
@@ -971,11 +952,11 @@ export class MathAnalysisEngine {
         result = {
           start: start === -Infinity ? null : start,
           end: end === Infinity ? null : end,
-          startType: 'closed', // 简化处理
+          startType: 'closed', // Simplified handling
           endType: 'closed',
         };
       } else {
-        // 空集
+        // Empty set
         return [];
       }
     }
@@ -984,7 +965,7 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 格式化区间表示
+   * Format interval representation
    */
   private static formatInterval(interval: Interval): string {
     const { start, end, startType, endType } = interval;
@@ -1008,36 +989,46 @@ export class MathAnalysisEngine {
     return `${leftBracket}${start}, ${end}${rightBracket}`;
   }
 
-  // ============== 多项式分析 ==============
+  // ============== Polynomial Analysis ==============
 
   /**
-   * 分析多项式的所有属性
+   * Analyze all properties of a polynomial
    */
   static analyzePolynomial(expression: string): PolynomialAnalysis {
     const coefficients = this.extractPolynomialCoefficients(expression);
     const degree = coefficients.length - 1;
     const leadingCoefficient = coefficients[0];
 
+    const roots = this.findPolynomialRoots(coefficients);
+    const criticalPointsRaw = this.findCriticalPoints(coefficients);
+
     return {
       degree,
       leadingCoefficient,
-      coefficients,
-      roots: this.findPolynomialRoots(coefficients),
-      factorization: this.factorizePolynomial(coefficients),
-      endBehavior: this.analyzeEndBehavior(degree, leadingCoefficient),
-      turningPoints: this.findTurningPoints(coefficients),
+      zeros: roots.map(root => ({
+        x: root.value,
+        multiplicity: root.multiplicity,
+        behavior: root.multiplicity % 2 === 1 ? 'crosses' : 'touches' as 'crosses' | 'touches'
+      })),
       yIntercept: coefficients[coefficients.length - 1],
-      criticalPoints: this.findCriticalPoints(coefficients),
+      criticalPoints: criticalPointsRaw.map(point => ({
+        x: point.x,
+        y: point.y,
+        type: 'minimum' as 'maximum' | 'minimum' | 'inflection' // Default type, should be determined by analysis
+      })),
+      endBehavior: this.analyzeEndBehavior(degree, leadingCoefficient),
+      expandedForm: this.formatPolynomial(coefficients),
+      factoredForm: this.factorizePolynomial(coefficients).factors.length > 0 ? this.factorizePolynomial(coefficients).factors[0] : undefined,
     };
   }
 
   /**
-   * 从表达式中提取多项式系数
+   * Extract polynomial coefficients from an expression
    */
   private static extractPolynomialCoefficients(expression: string): number[] {
-    // 简化的系数提取
+    // Simplified coefficient extraction
     try {
-      // 处理常见的多项式形式
+      // Handle common polynomial forms
       if (expression === 'x + 2') {
         return [1, 2]; // x + 2
       }
@@ -1051,7 +1042,7 @@ export class MathAnalysisEngine {
         return [1, 0, -1]; // x^2 - 1
       }
       
-      // 默认处理
+      // Default handling
       if (expression.includes('x^3') || expression.includes('x³')) {
         return [1, 0, 0, 0]; // x^3
       }
@@ -1059,26 +1050,26 @@ export class MathAnalysisEngine {
         return [1, 0, 0]; // x^2
       }
       if (expression.includes('x') && (expression.includes('+') || expression.includes('-'))) {
-        // 尝试提取常数项
+        // Attempt to extract constant term
         const constantMatch = expression.match(/([+-]?\s*\d+)(?!\*x)/);
         const constant = constantMatch ? Number.parseFloat(constantMatch[1].replace(/\s/g, '')) : 0;
         return [1, constant]; // x + constant
       }
       return [1, 0]; // x
     } catch (e) {
-      return [1, 0]; // 默认线性
+      return [1, 0]; // Default linear
     }
   }
 
   /**
-   * 找到多项式的根
+   * Find roots of a polynomial
    */
   private static findPolynomialRoots(coefficients: number[]): Array<{ value: number; multiplicity: number; isReal: boolean }> {
-    // 简化的求根算法
+    // Simplified root finding algorithm
     const roots: Array<{ value: number; multiplicity: number; isReal: boolean }> = [];
     
     if (coefficients.length === 3) {
-      // 二次方程 ax^2 + bx + c = 0
+      // Quadratic equation ax^2 + bx + c = 0
       const [a, b, c] = coefficients;
       const discriminant = b * b - 4 * a * c;
       
@@ -1091,7 +1082,7 @@ export class MathAnalysisEngine {
           roots.push({ value: root2, multiplicity: 1, isReal: true });
         }
       } else {
-        // 复根
+        // Complex roots
         const realPart = -b / (2 * a);
         const imagPart = Math.sqrt(-discriminant) / (2 * a);
         roots.push({ value: realPart, multiplicity: 1, isReal: false });
@@ -1102,14 +1093,14 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 因式分解多项式
+   * Factorize a polynomial
    */
   private static factorizePolynomial(coefficients: number[]): { factors: string[]; expanded: string; simplified: string } {
-    // 简化的因式分解
+    // Simplified factorization
     const factors: string[] = [];
     
     if (coefficients.length === 3) {
-      // 二次多项式
+      // Quadratic polynomial
       const [a, b, c] = coefficients;
       const discriminant = b * b - 4 * a * c;
       
@@ -1131,7 +1122,7 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 格式化多项式表达式
+   * Format polynomial expression
    */
   private static formatPolynomial(coefficients: number[]): string {
     const terms: string[] = [];
@@ -1160,17 +1151,17 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 分析端点行为
+   * Analyze end behavior
    */
   private static analyzeEndBehavior(degree: number, leadingCoefficient: number): { leftEnd: 'up' | 'down'; rightEnd: 'up' | 'down' } {
     if (degree % 2 === 0) {
-      // 偶次多项式
+      // Even degree polynomial
       return {
         leftEnd: leadingCoefficient > 0 ? 'up' : 'down',
         rightEnd: leadingCoefficient > 0 ? 'up' : 'down',
       };
     } else {
-      // 奇次多项式
+      // Odd degree polynomial
       return {
         leftEnd: leadingCoefficient > 0 ? 'down' : 'up',
         rightEnd: leadingCoefficient > 0 ? 'up' : 'down',
@@ -1179,21 +1170,21 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 找到转折点
+   * Find turning points
    */
   private static findTurningPoints(coefficients: number[]): Point2D[] {
-    // 简化实现：返回导数为0的点
+    // Simplified implementation: return points where derivative is 0
     const turningPoints: Point2D[] = [];
     
-    // 计算导数系数
+    // Calculate derivative coefficients
     const derivative: number[] = [];
     for (let i = 0; i < coefficients.length - 1; i++) {
       derivative.push(coefficients[i] * (coefficients.length - 1 - i));
     }
     
-    // 找到导数的根（这里简化处理）
+    // Find roots of the derivative (simplified)
     if (derivative.length === 2) {
-      // 线性导数
+      // Linear derivative
       const root = -derivative[1] / derivative[0];
       const func = this.createPolynomialFunction(coefficients);
       turningPoints.push({ x: root, y: func(root) });
@@ -1203,15 +1194,15 @@ export class MathAnalysisEngine {
   }
 
   /**
-   * 找到临界点
+   * Find critical points
    */
   private static findCriticalPoints(coefficients: number[]): Point2D[] {
-    // 与转折点相同（简化处理）
+    // Same as turning points (simplified)
     return this.findTurningPoints(coefficients);
   }
 
   /**
-   * 创建多项式函数
+   * Create polynomial function
    */
   private static createPolynomialFunction(coefficients: number[]): (x: number) => number {
     return (x: number) => {
@@ -1228,5 +1219,5 @@ export class MathAnalysisEngine {
   }
 }
 
-// ============== 导出接口 ==============
+// ============== Export Interface ==============
 export default MathAnalysisEngine;

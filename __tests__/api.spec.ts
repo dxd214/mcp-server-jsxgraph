@@ -20,15 +20,19 @@ describe("sdk API", () => {
       "rational-function",
       "equation-system",
       "conic-section",
+      "polynomial-steps",
+      "polynomial-complete",
+      "number-line",
+      "function-properties",
     ]);
   });
 
   it("chart meta structure", () => {
-    const { area } = API;
-    expect(area.schema).toBeTypeOf("object");
-    expect(area.tool).toBeTypeOf("object");
-    expect(area.tool.name).toBeTypeOf("string");
-    expect(area.tool.description).toBeTypeOf("string");
-    expect(area.tool.inputSchema).toBeTypeOf("object");
+    const charts = API["function-graph"]; // Use an existing tool
+    expect(charts.schema).toBeTypeOf("object");
+    expect(charts.tool).toBeTypeOf("object");
+    expect(charts.tool.name).toBeTypeOf("string");
+    expect(charts.tool.description).toBeTypeOf("string");
+    expect(charts.tool.inputSchema).toBeTypeOf("object");
   });
 });

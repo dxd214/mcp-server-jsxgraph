@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -191,7 +191,7 @@ const tool = {
   name: "generate_rational_function",
   description:
     "Generate rational and irrational function visualizations using JSXGraph. Plot rational functions with asymptotes (vertical, horizontal, oblique), holes, intercepts, and critical points. Visualize irrational functions with domain restrictions. Supports factorization, partial fractions, and end behavior analysis.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const rationalFunction = {

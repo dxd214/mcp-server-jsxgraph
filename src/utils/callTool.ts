@@ -24,6 +24,8 @@ const CHART_TYPE_MAP = {
   generate_conic_section: "conic-section",
   generate_polynomial_steps: "polynomial-steps",
   generate_polynomial_complete: "polynomial-complete",
+  generate_number_line: "number-line",
+  generate_function_properties: "function-properties",
 } as const;
 
 // JSXGraph chart types
@@ -61,11 +63,10 @@ export async function callTool(tool: string, args: object = {}) {
   try {
     // Validate input using Zod before sending to API.
     // Select the appropriate schema based on the chart type.
-    const schema = Charts[chartType].schema;
-
-    if (schema) {
+    const chartModule = Charts[chartType] as any;
+    if (chartModule && chartModule.schema) {
       // Use safeParse instead of parse and try-catch.
-      const result = z.object(schema).safeParse(args);
+      const result = z.object(chartModule.schema).safeParse(args);
       if (!result.success) {
         throw new McpError(
           ErrorCode.InvalidParams,
@@ -81,9 +82,9 @@ export async function callTool(tool: string, args: object = {}) {
       // Generate unique container ID based on chart type and timestamp
       const containerId = `jxgbox_${chartType.replace(/-/g, "_")}_${Date.now()}`;
 
-      // Special handling for polynomial-steps which has its own generator
+      // Special handling for charts that generate their own HTML
       if (chartType === "polynomial-steps") {
-        // 对于步骤式可视化，返回包含步骤控制逻辑的JS代码片段（不返回HTML模板）
+        // For step-by-step visualization, return JS code snippet with step control logic (no HTML template)
         jsCode = generatePolynomialStepsCode({
           ...(args as any),
           containerId: containerId,
@@ -102,6 +103,8 @@ export async function callTool(tool: string, args: object = {}) {
           "rational-function": "rational-function",
           "equation-system": "equation-system",
           "conic-section": "conic-section",
+          "number-line": "number-line",
+          "function-properties": "function-properties",
         };
 
         const jsxGraphConfig: JSXGraphConfig = {
@@ -111,13 +114,13 @@ export async function callTool(tool: string, args: object = {}) {
           boundingBox: (args as any).boundingBox || [-10, 10, 10, -10],
           config: args,
           containerId: containerId,
-          pure: true, // 其他JSXGraph图表仍返回纯净代码片段
+          pure: true, // Other JSXGraph charts return pure code snippets
         };
 
         jsCode = generateJSXGraphCode(jsxGraphConfig);
       }
 
-      // 只返回JavaScript代码片段，不返回HTML模板
+      // Only return JavaScript code snippet, no HTML template
       return {
         content: [
           {
@@ -178,9 +181,9 @@ export async function callToolWithPlaceholder(
 
     try {
       // Validate input using Zod
-      const schema = Charts[chartType].schema;
-      if (schema) {
-        const result = z.object(schema).safeParse(args);
+      const chartModule = Charts[chartType] as any;
+      if (chartModule && chartModule.schema) {
+        const result = z.object(chartModule.schema).safeParse(args);
         if (!result.success) {
           throw new McpError(
             ErrorCode.InvalidParams,
@@ -212,6 +215,8 @@ export async function callToolWithPlaceholder(
           "rational-function": "rational-function",
           "equation-system": "equation-system",
           "conic-section": "conic-section",
+          "number-line": "number-line",
+          "function-properties": "function-properties",
         };
 
         const jsxGraphConfig: JSXGraphConfig = {

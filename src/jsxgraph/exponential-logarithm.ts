@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -175,7 +175,7 @@ const tool = {
   name: "generate_exponential_logarithm",
   description:
     "Generate exponential and logarithmic function visualizations using JSXGraph. Plot exponential growth/decay, logarithmic functions with various bases, show asymptotes, intercepts, inverse relationships, and growth/decay analysis. Supports logarithmic scales and tangent lines.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const exponentialLogarithm = {

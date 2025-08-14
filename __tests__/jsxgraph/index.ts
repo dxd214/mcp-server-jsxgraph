@@ -10,3 +10,4 @@ export { default as "exponential-logarithm" } from "./exponential-logarithm.json
 export { default as "rational-function" } from "./rational-function.json";
 export { default as "equation-system" } from "./equation-system.json";
 export { default as "conic-section" } from "./conic-section.json";
+export { default as "number-line" } from "./number-line.json";

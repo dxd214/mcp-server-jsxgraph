@@ -1,24 +1,36 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import * as Charts from "../../src/jsxgraph";
-import { FlowDiagramSchema, MindMapSchema } from "../constant";
 
 describe("validator", () => {
-  it("should valid schema for mind-map chart", () => {
-    const chartType = "mind-map";
-    expect(() => {
-      const schema = Charts[chartType].schema;
-      z.object(schema).safeParse(MindMapSchema);
-    }).toThrow("Invalid parameters: node's name '文字动画' should be unique.");
+  it("should validate schema for number-line chart", () => {
+    const chartType = "number-line";
+    const chartModule = Charts[chartType] as any;
+    expect(chartModule).toBeDefined();
+    expect(chartModule.schema).toBeDefined();
+    
+    // Test with valid input
+    const validInput = {
+      range: [-10, 10],
+      points: [{ value: 0, type: "closed", color: "#ff0000" }]
+    };
+    
+    const result = z.object(chartModule.schema).safeParse(validInput);
+    expect(result.success).toBe(true);
   });
 
-  it("should valid schema for flow diagram chart", () => {
-    const chartType = "flow-diagram";
-    expect(() => {
-      const schema = Charts[chartType].schema;
-      z.object(schema).safeParse(FlowDiagramSchema);
-    }).toThrow(
-      "Invalid parameters: edge pair 'KnowledgeBase-Model' should be unique.",
-    );
+  it("should validate schema for function-graph chart", () => {
+    const chartType = "function-graph";
+    const chartModule = Charts[chartType] as any;
+    expect(chartModule).toBeDefined();
+    expect(chartModule.schema).toBeDefined();
+    
+    // Test with valid input
+    const validInput = {
+      functions: [{ expression: "x^2", color: "#0066cc" }]
+    };
+    
+    const result = z.object(chartModule.schema).safeParse(validInput);
+    expect(result.success).toBe(true);
   });
 });

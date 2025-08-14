@@ -1,375 +1,173 @@
 /**
- * JSXGraph 动画引擎
- * 为步骤切换提供丰富的动画效果
+ * JSXGraph Animation Engine
+ * Provides rich animation effects for step transitions
  */
 
 export interface AnimationConfig {
-  type: "move" | "rotate" | "scale" | "fade" | "morph" | "draw";
   duration?: number;
-  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out" | "bounce";
-  delay?: number;
+  easing?: "linear" | "ease-in" | "ease-out" | "ease-in-out";
+  fps?: number;
 }
 
-export interface ElementAnimation {
+export interface AnimationTarget {
   element: any;
-  from?: any;
-  to?: any;
-  animation?: AnimationConfig;
+  properties: Record<string, any>;
+  options?: AnimationConfig;
 }
 
 /**
- * 生成动画引擎代码
+ * Generate animation engine code
  */
-export function generateAnimationEngineCode(): string {
+export function generateAnimationEngineCode(config: AnimationConfig = {}): string {
+  const {
+    duration = 800,
+    easing = "ease-in-out",
+    fps = 60,
+  } = config;
+
   return `
-// JSXGraph 动画引擎
+// JSXGraph Animation Engine
 const AnimationEngine = (function() {
+  let isAnimating = false;
+  let animationQueue = [];
   
-  // 缓动函数
+  // Easing functions
   const easingFunctions = {
     'linear': (t) => t,
     'ease-in': (t) => t * t,
     'ease-out': (t) => t * (2 - t),
-    'ease-in-out': (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-    'bounce': (t) => {
-      const n1 = 7.5625;
-      const d1 = 2.75;
-      if (t < 1 / d1) {
-        return n1 * t * t;
-      } else if (t < 2 / d1) {
-        return n1 * (t -= 1.5 / d1) * t + 0.75;
-      } else if (t < 2.5 / d1) {
-        return n1 * (t -= 2.25 / d1) * t + 0.9375;
-      } else {
-        return n1 * (t -= 2.625 / d1) * t + 0.984375;
-      }
-    }
+    'ease-in-out': (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
   };
   
-  // 点的平移动画
-  function animatePointMove(point, targetX, targetY, duration = 1000, easing = 'ease-in-out') {
+  // Main animation function
+  function animate(target, properties, options = {}) {
+    if (!target || isAnimating) return Promise.resolve();
+    
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const animDuration = options.duration || ${duration};
+      const easingFunc = easingFunctions[options.easing || '${easing}'];
+      const startValues = {};
+      const endValues = {};
+      
+      // Get start and target values
+      for (let prop in properties) {
+        if (target.getAttribute) {
+          startValues[prop] = target.getAttribute(prop);
+        } else if (target[prop] !== undefined) {
+          startValues[prop] = target[prop];
+        }
+        endValues[prop] = properties[prop];
+      }
+      
+      // Animation loop
+      function animationFrame() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / animDuration, 1);
+        const easedProgress = easingFunc(progress);
+        
+        // Update properties
+        for (let prop in properties) {
+          if (startValues[prop] !== undefined && endValues[prop] !== undefined) {
+            const currentValue = startValues[prop] + (endValues[prop] - startValues[prop]) * easedProgress;
+            
+            if (target.setAttribute) {
+              target.setAttribute({ [prop]: currentValue });
+            } else if (target[prop] !== undefined) {
+              target[prop] = currentValue;
+            }
+          }
+        }
+        
+        if (progress < 1) {
+          requestAnimationFrame(animationFrame);
+        } else {
+          resolve();
+        }
+      }
+      
+      requestAnimationFrame(animationFrame);
+    });
+  }
+  
+  // Point translation animation
+  function movePoint(point, newCoords, options = {}) {
     if (!point || !point.coords) return Promise.resolve();
     
-    const startX = point.X();
-    const startY = point.Y();
-    const startTime = Date.now();
-    const easingFunc = easingFunctions[easing] || easingFunctions['ease-in-out'];
+    const currentCoords = [point.coords.usrCoords[1], point.coords.usrCoords[2]];
     
-    return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunc(progress);
-        
-        const newX = startX + (targetX - startX) * easedProgress;
-        const newY = startY + (targetY - startY) * easedProgress;
-        
-        point.setPosition(JXG.COORDS_BY_USER, [newX, newY]);
-        point.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          resolve();
-        }
-      }
-      
-      requestAnimationFrame(animate);
-    });
+    return animate(point, { coords: newCoords }, options);
   }
   
-  // 线的平移动画
-  function animateLineMove(line, deltaX, deltaY, duration = 1000) {
-    if (!line) return Promise.resolve();
+  // Line translation animation
+  function moveLine(line, newCoords, options = {}) {
+    if (!line || !line.point1 || !line.point2) return Promise.resolve();
     
-    const points = [];
-    if (line.point1) points.push(line.point1);
-    if (line.point2) points.push(line.point2);
-    
-    const promises = points.map(point => {
-      const targetX = point.X() + deltaX;
-      const targetY = point.Y() + deltaY;
-      return animatePointMove(point, targetX, targetY, duration);
-    });
+    const promises = [];
+    if (newCoords.point1) {
+      promises.push(movePoint(line.point1, newCoords.point1, options));
+    }
+    if (newCoords.point2) {
+      promises.push(movePoint(line.point2, newCoords.point2, options));
+    }
     
     return Promise.all(promises);
   }
   
-  // 曲线的绘制动画（逐步显示）
-  function animateCurveDraw(curve, duration = 1500, easing = 'ease-out') {
-    if (!curve) return Promise.resolve();
+  // Curve drawing animation (step-by-step display)
+  function animateCurve(curve, options = {}) {
+    if (!curve || !curve.getAttribute) return Promise.resolve();
     
-    const startTime = Date.now();
-    const easingFunc = easingFunctions[easing] || easingFunctions['ease-out'];
+    // Save original domain
+    const originalDomain = curve.getAttribute('domain') || [-10, 10];
+    const targetDomain = options.domain || originalDomain;
     
-    // 保存原始的定义域
-    const originalDomain = curve.visProp.domain || [-10, 10];
-    const [domainStart, domainEnd] = originalDomain;
+    // Set initial domain to start point
+    curve.setAttribute({ domain: [targetDomain[0], targetDomain[0]] });
+    
+    // Gradually expand domain
+    const steps = 20;
+    const stepDuration = (options.duration || ${duration}) / steps;
     
     return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunc(progress);
+      let currentStep = 0;
+      
+      function expandDomain() {
+        currentStep++;
+        const progress = currentStep / steps;
+        const currentDomain = targetDomain[0] + (targetDomain[1] - targetDomain[0]) * progress;
         
-        // 逐步扩展定义域
-        const currentEnd = domainStart + (domainEnd - domainStart) * easedProgress;
+        // Update curve display range
+        curve.setAttribute({ domain: [targetDomain[0], currentDomain] });
         
-        // 更新曲线的显示范围
-        if (curve.updateCurve) {
-          curve.updateCurve();
+        // Simulate drawing effect by changing opacity
+        if (progress < 0.5) {
+          curve.setAttribute({ strokeOpacity: progress * 2 });
         }
         
-        // 通过改变透明度模拟绘制效果
-        curve.setAttribute({ strokeOpacity: easedProgress });
-        
-        if (curve.board) curve.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
+        if (currentStep < steps) {
+          setTimeout(expandDomain, stepDuration);
         } else {
+          // Initialize as transparent
+          curve.setAttribute({ 
+            domain: targetDomain,
+            strokeOpacity: 1 
+          });
           resolve();
         }
       }
       
-      // 初始化为透明
-      curve.setAttribute({ strokeOpacity: 0 });
-      requestAnimationFrame(animate);
+      expandDomain();
     });
   }
   
-  // 旋转动画
-  function animateRotation(element, angle, centerX, centerY, duration = 1000) {
-    if (!element) return Promise.resolve();
-    
-    const startTime = Date.now();
-    const startAngle = 0;
-    const deltaAngle = angle - startAngle;
-    
-    return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunctions['ease-in-out'](progress);
-        
-        const currentAngle = startAngle + deltaAngle * easedProgress;
-        const rad = currentAngle * Math.PI / 180;
-        
-        // 应用旋转变换
-        const transform = element.board.create('transform', [
-          currentAngle * Math.PI / 180,
-          centerX, centerY
-        ], { type: 'rotate' });
-        
-        if (element.applyTransform) {
-          element.applyTransform(transform);
-        }
-        
-        element.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          resolve();
-        }
-      }
-      
-      requestAnimationFrame(animate);
-    });
-  }
-  
-  // 缩放动画
-  function animateScale(element, scale, duration = 800) {
-    if (!element) return Promise.resolve();
-    
-    const startTime = Date.now();
-    const startScale = 1;
-    const deltaScale = scale - startScale;
-    
-    return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunctions['ease-in-out'](progress);
-        
-        const currentScale = startScale + deltaScale * easedProgress;
-        
-        // 对于点，改变大小
-        if (element.type === JXG.OBJECT_TYPE_POINT) {
-          element.setAttribute({ size: element.visProp.size * currentScale });
-        }
-        // 对于线，改变宽度
-        else if (element.type === JXG.OBJECT_TYPE_LINE) {
-          element.setAttribute({ strokeWidth: element.visProp.strokeWidth * currentScale });
-        }
-        
-        if (element.board) element.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          resolve();
-        }
-      }
-      
-      requestAnimationFrame(animate);
-    });
-  }
-  
-  // 渐变动画（淡入淡出）
-  function animateFade(element, targetOpacity, duration = 500) {
-    if (!element) return Promise.resolve();
-    
-    const startTime = Date.now();
-    const startOpacity = element.visProp.strokeOpacity || element.visProp.fillOpacity || 1;
-    const deltaOpacity = targetOpacity - startOpacity;
-    
-    return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunctions['ease-in-out'](progress);
-        
-        const currentOpacity = startOpacity + deltaOpacity * easedProgress;
-        
-        element.setAttribute({
-          strokeOpacity: currentOpacity,
-          fillOpacity: currentOpacity,
-          opacity: currentOpacity
-        });
-        
-        if (element.board) element.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          if (targetOpacity === 0) {
-            element.setAttribute({ visible: false });
-          }
-          resolve();
-        }
-      }
-      
-      requestAnimationFrame(animate);
-    });
-  }
-  
-  // 形态变换动画（例如：从圆变成椭圆）
-  function animateMorph(element, targetProperties, duration = 1000) {
-    if (!element) return Promise.resolve();
-    
-    const startTime = Date.now();
-    const startProps = {};
-    const deltaProps = {};
-    
-    // 获取起始属性
-    for (let prop in targetProperties) {
-      if (element.visProp[prop] !== undefined) {
-        startProps[prop] = element.visProp[prop];
-        deltaProps[prop] = targetProperties[prop] - startProps[prop];
-      }
-    }
-    
-    return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunctions['ease-in-out'](progress);
-        
-        const currentProps = {};
-        for (let prop in startProps) {
-          currentProps[prop] = startProps[prop] + deltaProps[prop] * easedProgress;
-        }
-        
-        element.setAttribute(currentProps);
-        if (element.board) element.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          resolve();
-        }
-      }
-      
-      requestAnimationFrame(animate);
-    });
-  }
-  
-  // 路径动画（沿着路径移动）
-  function animateAlongPath(element, pathFunction, duration = 2000) {
-    if (!element || !pathFunction) return Promise.resolve();
-    
-    const startTime = Date.now();
-    
-    return new Promise((resolve) => {
-      function animate() {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const easedProgress = easingFunctions['ease-in-out'](progress);
-        
-        // 获取路径上的点
-        const point = pathFunction(easedProgress);
-        if (point && point.x !== undefined && point.y !== undefined) {
-          element.setPosition(JXG.COORDS_BY_USER, [point.x, point.y]);
-        }
-        
-        if (element.board) element.board.update();
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          resolve();
-        }
-      }
-      
-      requestAnimationFrame(animate);
-    });
-  }
-  
-  // 组合动画（同时执行多个动画）
-  function animateGroup(animations) {
-    const promises = animations.map(anim => {
-      switch(anim.type) {
-        case 'move':
-          return animatePointMove(anim.element, anim.to.x, anim.to.y, anim.duration, anim.easing);
-        case 'rotate':
-          return animateRotation(anim.element, anim.to.angle, anim.center.x, anim.center.y, anim.duration);
-        case 'scale':
-          return animateScale(anim.element, anim.to.scale, anim.duration);
-        case 'fade':
-          return animateFade(anim.element, anim.to.opacity, anim.duration);
-        case 'morph':
-          return animateMorph(anim.element, anim.to.properties, anim.duration);
-        case 'draw':
-          return animateCurveDraw(anim.element, anim.duration, anim.easing);
-        default:
-          return Promise.resolve();
-      }
-    });
-    
-    return Promise.all(promises);
-  }
-  
-  // 序列动画（按顺序执行）
-  async function animateSequence(animations) {
-    for (let anim of animations) {
-      await animateGroup([anim]);
-    }
-  }
-  
-  // 公共API
+  // Public API
   return {
-    animatePointMove,
-    animateLineMove,
-    animateCurveDraw,
-    animateRotation,
-    animateScale,
-    animateFade,
-    animateMorph,
-    animateAlongPath,
-    animateGroup,
-    animateSequence,
-    easingFunctions
+    animate,
+    movePoint,
+    moveLine,
+    animateCurve,
+    get isAnimating() { return isAnimating; }
   };
 })();
 `;

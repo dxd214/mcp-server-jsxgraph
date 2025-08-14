@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -113,7 +113,7 @@ const tool = {
   name: "generate_parametric_curve",
   description:
     "Generate parametric curves using JSXGraph. Ideal for plotting curves defined by parametric equations like circles (cos(t), sin(t)), Lissajous curves, spirals, cycloids, etc. Supports multiple curves and animated traces.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const parametricCurve = {

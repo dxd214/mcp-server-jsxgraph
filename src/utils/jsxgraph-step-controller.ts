@@ -1,6 +1,6 @@
 /**
- * JSXGraph Step Controller - 公共步骤控制服务
- * 为所有JSXGraph图表提供统一的分步骤展示和动画控制能力
+ * JSXGraph Step Controller - Public Step Control Service
+ * Provides unified step-by-step display and animation control capabilities for all JSXGraph charts
  */
 
 import { generateAnimationEngineCode } from "./jsxgraph-animation-engine";
@@ -23,7 +23,7 @@ export interface ElementTransition {
 }
 
 /**
- * 生成步骤控制器的JavaScript代码
+ * Generate JavaScript code for step controller
  */
 export function generateStepControllerCode(
   config: StepControllerConfig = {},
@@ -41,13 +41,13 @@ export function generateStepControllerCode(
     return "";
   }
 
-  // 先生成动画引擎代码
+  // First generate animation engine code
   const animationEngineCode = generateAnimationEngineCode();
 
   return `
 ${animationEngineCode}
 
-// JSXGraph Step Controller - 公共步骤控制服务
+// JSXGraph Step Controller - Public Step Control Service
 const StepController = (function() {
   let currentStep = -1;
   let totalSteps = 0;
@@ -57,14 +57,14 @@ const StepController = (function() {
   let elementCache = new Map();
   let board = null;
   
-  // 动画配置
+  // Animation configuration
   const animationConfig = {
     duration: ${animationDuration},
     easing: '${animationEasing}',
     fps: 60
   };
   
-  // 缓动函数
+  // Easing functions
   const easingFunctions = {
     'linear': (t) => t,
     'ease-in': (t) => t * t,
@@ -72,7 +72,7 @@ const StepController = (function() {
     'ease-in-out': (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
   };
   
-  // 动画引擎
+  // Animation engine
   function animate(element, properties, options = {}) {
     if (!element || isAnimating) return Promise.resolve();
     
@@ -83,7 +83,7 @@ const StepController = (function() {
       const startValues = {};
       const endValues = {};
       
-      // 获取起始值和目标值
+      // Get start and target values
       for (let prop in properties) {
         if (element.getAttribute) {
           startValues[prop] = element.getAttribute(prop);
@@ -93,37 +93,24 @@ const StepController = (function() {
         endValues[prop] = properties[prop];
       }
       
-      // 动画循环
+      // Animation loop
       function animationFrame() {
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const easedProgress = easing(progress);
         
-        // 更新属性
+        // Update properties
         for (let prop in properties) {
-          const start = startValues[prop];
-          const end = endValues[prop];
-          
-          if (typeof start === 'number' && typeof end === 'number') {
-            const value = start + (end - start) * easedProgress;
+          if (startValues[prop] !== undefined && endValues[prop] !== undefined) {
+            const currentValue = startValues[prop] + (endValues[prop] - startValues[prop]) * easedProgress;
             
             if (element.setAttribute) {
-              element.setAttribute(prop, value);
-            } else {
-              element[prop] = value;
-            }
-          } else if (Array.isArray(start) && Array.isArray(end)) {
-            const value = start.map((v, i) => v + (end[i] - v) * easedProgress);
-            
-            if (prop === 'coords') {
-              element.setPosition(JXG.COORDS_BY_USER, value);
-            } else if (element.setAttribute) {
-              element.setAttribute(prop, value);
+              element.setAttribute({ [prop]: currentValue });
+            } else if (element[prop] !== undefined) {
+              element[prop] = currentValue;
             }
           }
         }
-        
-        if (board) board.update();
         
         if (progress < 1) {
           requestAnimationFrame(animationFrame);
@@ -136,11 +123,11 @@ const StepController = (function() {
     });
   }
   
-  // 淡入效果
+  // Fade in effect
   function fadeIn(elements, duration = 300) {
     elements.forEach(el => {
       if (el && el.setAttribute) {
-        // 直接设置为可见
+        // Set directly to visible
         el.setAttribute({ 
           visible: true,
           fillOpacity: 1,
@@ -154,11 +141,11 @@ const StepController = (function() {
     return Promise.resolve();
   }
   
-  // 淡出效果
+  // Fade out effect
   function fadeOut(elements, duration = 200) {
     elements.forEach(el => {
       if (el && el.setAttribute) {
-        // 直接隐藏
+        // Hide directly
         el.setAttribute({ visible: false });
       }
     });
@@ -167,7 +154,7 @@ const StepController = (function() {
     return Promise.resolve();
   }
   
-  // 平移动画
+  // Move animation
   function moveTo(element, newCoords, duration = 800) {
     if (!element || !element.coords) return Promise.resolve();
     
@@ -176,18 +163,18 @@ const StepController = (function() {
     return animate(element, { coords: newCoords }, { duration });
   }
   
-  // 缩放动画
+  // Scale animation
   function scaleTo(element, newSize, duration = 500) {
     if (!element) return Promise.resolve();
     
     return animate(element, { size: newSize }, { duration });
   }
   
-  // 颜色过渡
+  // Color transition
   function colorTransition(element, newColor, duration = 500) {
     if (!element) return Promise.resolve();
     
-    // 简化的颜色过渡（实际应该插值RGB值）
+    // Simplified color transition (should interpolate RGB values in practice)
     return new Promise((resolve) => {
       setTimeout(() => {
         element.setAttribute({ strokeColor: newColor, fillColor: newColor });
@@ -197,25 +184,25 @@ const StepController = (function() {
     });
   }
   
-  // 注册步骤
+  // Register step
   function registerStep(stepFunction) {
     stepHandlers.push(stepFunction);
     totalSteps = stepHandlers.length;
   }
   
-  // 显示指定步骤
+  // Show specified step
   async function showStep(stepIndex) {
     if (stepIndex < 0 || stepIndex >= totalSteps || isAnimating) return;
     
     isAnimating = true;
     
-    // 更新UI
+    // Update UI
     updateStepInfo(stepIndex);
     
-    // 获取当前所有元素
+    // Get current all elements
     const currentElements = Array.from(elementCache.values());
     
-    // 清除时前元素
+    // Clear previous elements
     if (currentStep >= 0 && currentElements.length > 0) {
       currentElements.forEach(el => {
         if (el && el.setAttribute) {
@@ -225,24 +212,24 @@ const StepController = (function() {
           try {
             board.removeObject(el);
           } catch (e) {
-            // 忽略删除错误
+            // Ignore deletion errors
           }
         }
       });
       elementCache.clear();
     }
     
-    // 执行新步骤
+    // Execute new step
     if (stepHandlers[stepIndex]) {
       try {
         const newElements = await stepHandlers[stepIndex](board);
         
-        // 缓存新元素
+        // Cache new elements
         if (Array.isArray(newElements)) {
           newElements.forEach((el, i) => {
             if (el) {
               elementCache.set(\`step\${stepIndex}_\${i}\`, el);
-              // 确保元素可见
+              // Ensure element is visible
               if (el.setAttribute) {
                 el.setAttribute({ 
                   visible: true,
@@ -255,7 +242,7 @@ const StepController = (function() {
           });
         }
       } catch (error) {
-        console.error('步骤执行错误:', error);
+        console.error('Step execution error:', error);
       }
     }
     
@@ -263,14 +250,14 @@ const StepController = (function() {
     currentStep = stepIndex;
     updateControlButtons();
     
-    // 延迟重置动画状态
+    // Delay reset animation state
     setTimeout(() => {
       isAnimating = false;
       updateControlButtons();
     }, 100);
   }
   
-  // 更新步骤信息
+  // Update step information
   function updateStepInfo(stepIndex) {
     const stepTitle = document.getElementById('step-title');
     const stepDescription = document.getElementById('step-description');
@@ -283,11 +270,11 @@ const StepController = (function() {
     }
     
     if (stepCounter) {
-      stepCounter.textContent = \`步骤: \${stepIndex + 1} / \${totalSteps}\`;
+      stepCounter.textContent = \`Step: \${stepIndex + 1} / \${totalSteps}\`;
     }
   }
   
-  // 更新控制按钮状态
+  // Update control button states
   function updateControlButtons() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
@@ -308,7 +295,7 @@ const StepController = (function() {
     }
   }
   
-  // 控制函数
+  // Control functions
   function nextStep() {
     if (currentStep < totalSteps - 1 && !isAnimating) {
       showStep(currentStep + 1);
@@ -324,11 +311,11 @@ const StepController = (function() {
   function resetSteps() {
     stopAutoPlay();
     
-    // 直接跳转到第一步
+    // Jump directly to first step
     if (totalSteps > 0) {
       showStep(0);
     } else {
-      // 如果没有步骤，清空所有
+      // If no steps, clear all
       const allElements = Array.from(elementCache.values());
       if (board) {
         allElements.forEach(el => {
@@ -348,26 +335,26 @@ const StepController = (function() {
     
     const playBtn = document.getElementById('playBtn');
     if (playBtn) {
-      playBtn.textContent = '⏸️ 暂停';
+      playBtn.textContent = '⏸️ Pause';
       playBtn.className = 'control-btn playing';
     }
     
-    // 如果在最后一步，从第一步开始
+    // If at last step, start from first step
     if (currentStep >= totalSteps - 1) {
       showStep(0);
     } 
-    // 如果还没开始，从第一步开始
+    // If not started yet, start from first step
     else if (currentStep < 0) {
       showStep(0);
     }
-    // 否则从当前步骤继续
+    // Otherwise continue from current step
     
-    // 设置定时器自动播放
+    // Set timer for auto-play
     autoPlayInterval = setInterval(() => {
       if (currentStep < totalSteps - 1 && !isAnimating) {
         nextStep();
       } else if (currentStep >= totalSteps - 1) {
-        // 到达最后一步，停止自动播放
+        // Reached last step, stop auto-play
         stopAutoPlay();
       }
     }, ${playSpeed});
@@ -380,7 +367,7 @@ const StepController = (function() {
       
       const playBtn = document.getElementById('playBtn');
       if (playBtn) {
-        playBtn.textContent = '▶️ 自动播放';
+        playBtn.textContent = '▶️ Auto Play';
         playBtn.className = 'control-btn';
       }
     }
@@ -394,31 +381,31 @@ const StepController = (function() {
     }
   }
   
-  // 初始化
+  // Initialize
   function init(jxgBoard) {
     board = jxgBoard;
     
-    // 绑定全局函数
+    // Bind global functions
     window.nextStep = nextStep;
     window.previousStep = previousStep;
     window.resetSteps = resetSteps;
     window.toggleAutoPlay = toggleAutoPlay;
     
-    // 立即显示第一步（不用延迟）
+    // Show first step immediately (no delay)
     if (totalSteps > 0) {
-      // 直接显示第一步
+      // Show first step directly
       showStep(0);
     } else {
       updateControlButtons();
     }
     
-    // 自动播放
+    // Auto-play
     if (${autoPlay}) {
       setTimeout(() => startAutoPlay(), 2000);
     }
   }
   
-  // 公共API
+  // Public API
   return {
     init,
     registerStep,
@@ -442,7 +429,7 @@ const StepController = (function() {
 }
 
 /**
- * 生成步骤控制按钮的HTML代码
+ * Generate HTML code for step control buttons
  */
 export function generateStepControlsHTML(
   config: StepControllerConfig = {},
@@ -453,21 +440,21 @@ export function generateStepControlsHTML(
 
   return `
 <div class="step-controls">
-  <button class="control-btn" id="prevBtn" onclick="previousStep()" disabled>⬅️ 上一步</button>
-  <button class="control-btn reset" id="resetBtn" onclick="resetSteps()">🔄 重置</button>
-  <button class="control-btn" id="nextBtn" onclick="nextStep()">下一步 ➡️</button>
-  <button class="control-btn" id="playBtn" onclick="toggleAutoPlay()">▶️ 自动播放</button>
+  <button class="control-btn" id="prevBtn" onclick="previousStep()" disabled>⬅️ Previous</button>
+  <button class="control-btn reset" id="resetBtn" onclick="resetSteps()">🔄 Reset</button>
+  <button class="control-btn" id="nextBtn" onclick="nextStep()">Next ➡️</button>
+  <button class="control-btn" id="playBtn" onclick="toggleAutoPlay()">▶️ Auto Play</button>
 </div>`;
 }
 
 /**
- * 生成步骤信息显示区的HTML代码
+ * Generate HTML code for step information display area
  */
 export function generateStepInfoHTML(): string {
   return `
 <div id="step-info">
-  <div id="step-title">准备开始</div>
-  <div id="step-description">点击"下一步"开始</div>
-  <div id="step-counter">步骤: 0 / 0</div>
+  <div id="step-title">Ready to start</div>
+  <div id="step-description">Click "Next" to begin</div>
+  <div id="step-counter">Step: 0 / 0</div>
 </div>`;
 }

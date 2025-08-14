@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// JSXGraph 基础配置 schema
+// JSXGraph base configuration schema
 export const JSXGraphThemeSchema = z
   .enum(["default", "dark", "light"])
   .optional()

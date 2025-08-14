@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -143,7 +143,7 @@ const tool = {
   name: "generate_quadratic_analysis",
   description:
     "Generate comprehensive quadratic function analysis using JSXGraph. Visualize parabolas with vertex, axis of symmetry, roots, y-intercept, focus, directrix, and discriminant analysis. Shows vertex form, factorized form, tangent lines, and shaded regions. Perfect for studying quadratic properties and transformations.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const quadraticAnalysis = {

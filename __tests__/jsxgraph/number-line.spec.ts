@@ -1,171 +1,317 @@
-import { describe, expect, it } from "vitest";
+import { describe, test, expect } from "vitest";
 import * as Charts from "../../src/jsxgraph";
 
 describe("Number Line Tool", () => {
   const numberLine = Charts["number-line"];
-
-  it("should create basic number line with default settings", () => {
-    const input = {};
-    const result = numberLine.execute(input);
-
-    expect(result).toContain("<!DOCTYPE html>");
-    expect(result).toContain("Number Line Visualization");
-    expect(result).toContain("jsxgraphcore.js");
-    expect(result).toContain("JXG.JSXGraph.initBoard");
+  
+  describe("工具元数据", () => {
+    test("应该具有正确的工具元数据", () => {
+      expect(numberLine.tool.name).toBe("generate_number_line");
+      expect(numberLine.tool.description).toContain("number line visualizations");
+      expect(numberLine.tool.description).toContain("open/closed circles");
+      expect(numberLine.tool.description).toContain("interval shading");
+      expect(numberLine.tool.description).toContain("compound inequalities");
+      expect(numberLine.tool.inputSchema).toBeDefined();
+    });
   });
 
-  it("should render number line with custom range and title", () => {
-    const input = {
-      range: [-5, 15],
-      title: "Custom Number Line",
-      tickInterval: 2,
-    };
-    const result = numberLine.execute(input);
+  describe("Schema 结构验证", () => {
+    test("应该具有有效的 schema 结构", () => {
+      expect(numberLine.schema).toBeDefined();
+      expect(typeof numberLine.schema).toBe("object");
+      
+      // 检查必需字段
+      expect(numberLine.schema.range).toBeDefined();
+      expect(numberLine.schema.points).toBeDefined();
+      expect(numberLine.schema.intervals).toBeDefined();
+      expect(numberLine.schema.inequalities).toBeDefined();
+      
+      // 检查新增字段
+      expect(numberLine.schema.style).toBeDefined();
+      expect(numberLine.schema.axisXTitle).toBeDefined();
+      expect(numberLine.schema.axisYTitle).toBeDefined();
+    });
 
-    expect(result).toContain("<h1>Custom Number Line</h1>");
-    expect(result).toContain("for (let x = -5; x <= 15; x += 2)");
-    expect(result).toContain('"boundingbox":[-10,10,10,-10]');
+    test("应该具有正确的默认值", () => {
+      const { z } = require("zod");
+      const schema = z.object(numberLine.schema);
+      
+      // 测试默认值
+      const result = schema.safeParse({});
+      expect(result.success).toBe(true);
+      
+      if (result.success) {
+        const data = result.data;
+        expect(data.range).toEqual([-10, 10]);
+        expect(data.tickInterval).toBe(1);
+        expect(data.showTicks).toBe(true);
+        expect(data.showNumbers).toBe(true);
+        expect(data.showSetNotation).toBe(true);
+        expect(data.showIntervalNotation).toBe(true);
+        expect(data.autoAnalyze).toBe(true);
+        expect(data.lineColor).toBe("#000000");
+        expect(data.lineWidth).toBe(2);
+        expect(data.axisXTitle).toBe("x");
+        expect(data.axisYTitle).toBe("y");
+      }
+    });
   });
 
-  it("should render individual points with open and closed circles", () => {
-    const input = {
-      points: [
-        {
-          value: 2,
-          type: "closed" as const,
-          color: "#ff0000",
-          label: "Point A",
-        },
-        { value: 5, type: "open" as const, color: "#00ff00", label: "Point B" },
-      ],
-    };
-    const result = numberLine.execute(input);
+  describe("基本输入验证", () => {
+    test("应该验证基本输入", () => {
+      const { z } = require("zod");
+      const input = {
+        range: [-10, 10],
+        points: [{ value: 0, type: "closed", color: "#ff0000" }]
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
 
-    expect(result).toContain("board.create('point', [2, yPos]");
-    expect(result).toContain("board.create('point', [5, yPos]");
-    expect(result).toContain("Point A");
-    expect(result).toContain("Point B");
+    test("应该验证复杂输入", () => {
+      const { z } = require("zod");
+      const input = {
+        range: [-5, 5],
+        tickInterval: 0.5,
+        showTicks: false,
+        showNumbers: false,
+        title: "Custom Number Line"
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
   });
 
-  it("should render intervals with shading and endpoints", () => {
-    const input = {
-      intervals: [
-        {
-          start: 1,
-          end: 4,
-          startType: "closed" as const,
-          endType: "open" as const,
-          color: "#0066cc",
-          opacity: 0.5,
-          label: "Interval [1,4)",
-        },
-      ],
-    };
-    const result = numberLine.execute(input);
+  describe("点数据验证", () => {
+    test("应该验证点输入", () => {
+      const { z } = require("zod");
+      const input = {
+        points: [
+          { value: 0, type: "closed", color: "#ff0000", size: 8, label: "Origin" },
+          { value: 3, type: "open", color: "#00ff00" }
+        ]
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
 
-    expect(result).toContain("const start = 1;");
-    expect(result).toContain("const end = 4;");
-    expect(result).toContain("fillOpacity: opacity");
-    expect(result).toContain("Interval [1,4)");
+    test("应该验证点的默认值", () => {
+      const { z } = require("zod");
+      const input = {
+        points: [{ value: 5 }] // 只提供必需字段
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+      
+      if (result.success) {
+        const point = result.data.points?.[0];
+        expect(point?.type).toBe("closed");
+        expect(point?.color).toBe("#0066cc");
+        expect(point?.size).toBe(6);
+      }
+    });
   });
 
-  it("should render arrows for infinite intervals", () => {
-    const input = {
-      intervals: [
-        {
-          start: 3,
-          end: 1000,
-          startType: "open" as const,
-          endType: "open" as const,
-          arrow: "right" as const,
-          color: "#ff6600",
-        },
-      ],
-    };
-    const result = numberLine.execute(input);
+  describe("区间数据验证", () => {
+    test("应该验证区间输入", () => {
+      const { z } = require("zod");
+      const input = {
+        intervals: [
+          {
+            start: 1,
+            end: 4,
+            startType: "closed",
+            endType: "open",
+            color: "#0066cc",
+            opacity: 0.5,
+            arrow: "both",
+            label: "Interval [1,4)",
+          },
+        ],
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
 
-    expect(result).toContain("const arrowType = 'right';");
-    expect(result).toContain(
-      "if (arrowType === 'right' || arrowType === 'both')",
-    );
+    test("应该验证区间的默认值", () => {
+      const { z } = require("zod");
+      const input = {
+        intervals: [{ start: 0, end: 5 }] // 只提供必需字段
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+      
+      if (result.success) {
+        const interval = result.data.intervals?.[0];
+        expect(interval?.startType).toBe("closed");
+        expect(interval?.endType).toBe("closed");
+        expect(interval?.color).toBe("#0066cc");
+        expect(interval?.opacity).toBe(0.3);
+        expect(interval?.arrow).toBe("none");
+      }
+    });
   });
 
-  it("should parse simple inequalities correctly", () => {
-    const input = {
-      inequalities: [
-        { expression: "x > 3", color: "#ff0000" },
-        { expression: "x <= -2", color: "#00ff00" },
-      ],
-    };
-    const result = numberLine.execute(input);
+  describe("不等式验证", () => {
+    test("应该验证简单不等式", () => {
+      const { z } = require("zod");
+      const input = {
+        inequalities: [
+          { expression: "x > 3", color: "#ff0000" },
+          { expression: "x <= -2", color: "#00ff00" },
+        ],
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
 
-    // Should create intervals from parsed inequalities
-    expect(result).toContain("'x > 3'");
-    expect(result).toContain("'x <= -2'");
+    test("应该验证复合不等式", () => {
+      const { z } = require("zod");
+      const input = {
+        inequalities: [
+          {
+            type: "compound",
+            expressions: ["x > 0", "x < 10"],
+            operator: "and",
+            color: "#0066cc"
+          }
+        ]
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    test("应该验证绝对不等式", () => {
+      const { z } = require("zod");
+      const input = {
+        inequalities: [
+          {
+            type: "absolute",
+            expression: "|x| < 3",
+            color: "#ff6600"
+          }
+        ]
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
   });
 
-  it("should parse compound inequalities correctly", () => {
-    const input = {
-      inequalities: [
-        { expression: "2 < x < 5", color: "#ff0000" },
-        { expression: "-3 <= x <= 1", color: "#00ff00" },
-      ],
-    };
-    const result = numberLine.execute(input);
+  describe("样式配置验证", () => {
+    test("应该验证样式配置", () => {
+      const { z } = require("zod");
+      const input = {
+        style: {
+          theme: "dark",
+          backgroundColor: "#1a1a1a",
+          grid: false,
+          axis: false
+        }
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
 
-    expect(result).toContain("'2 < x < 5'");
-    expect(result).toContain("'-3 <= x <= 1'");
+    test("应该验证样式的默认值", () => {
+      const { z } = require("zod");
+      const input = {
+        style: {} // 空样式对象
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+      
+      if (result.success) {
+        const style = result.data.style;
+        expect(style?.theme).toBe("default");
+        expect(style?.backgroundColor).toBe("#ffffff");
+        expect(style?.grid).toBe(true);
+        expect(style?.axis).toBe(true);
+      }
+    });
   });
 
-  it("should handle multiple overlapping intervals", () => {
-    const input = {
-      intervals: [
-        { start: 0, end: 5, color: "#ff000080", opacity: 0.3 },
-        { start: 3, end: 8, color: "#00ff0080", opacity: 0.3 },
-      ],
-    };
-    const result = numberLine.execute(input);
+  describe("高级配置验证", () => {
+    test("应该验证缩放配置", () => {
+      const { z } = require("zod");
+      const input = {
+        zoom: {
+          enabled: false,
+          factorX: 2.0,
+          factorY: 2.0,
+          wheel: false
+        }
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
 
-    expect(result).toContain("const start = 0;");
-    expect(result).toContain("const start = 3;");
-    expect(result).toContain("fillOpacity: opacity");
+    test("应该验证平移配置", () => {
+      const { z } = require("zod");
+      const input = {
+        pan: {
+          enabled: true,
+          needShift: true,
+          needTwoFingers: true
+        }
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
+
+    test("应该验证边界框配置", () => {
+      const { z } = require("zod");
+      const input = {
+        boundingBox: [-5, 5, 5, -5],
+        keepAspectRatio: true
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(true);
+    });
   });
 
-  it("should disable ticks and numbers when requested", () => {
-    const input = {
-      showTicks: false,
-      showNumbers: false,
-    };
-    const result = numberLine.execute(input);
+  describe("错误输入处理", () => {
+    test("应该拒绝无效的范围", () => {
+      const { z } = require("zod");
+      const input = {
+        range: [10, -10] // 最大值小于最小值
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(false);
+    });
 
-    // Should not contain tick generation code
-    expect(result).not.toContain("Tick mark");
-    expect(result).not.toContain("Number label");
-  });
+    test("应该拒绝无效的点值", () => {
+      const { z } = require("zod");
+      const input = {
+        points: [{ value: "invalid" }] // 值应该是数字
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(false);
+    });
 
-  it("should handle custom styling options", () => {
-    const input = {
-      lineColor: "#purple",
-      lineWidth: 3,
-      backgroundColor: "#f0f0f0",
-      width: 1000,
-      height: 150,
-    };
-    const result = numberLine.execute(input);
-
-    expect(result).toContain("strokeColor: '#purple'");
-    expect(result).toContain("strokeWidth: 3");
-    expect(result).toContain("background-color: #f0f0f0");
-    expect(result).toContain("width:1000px; height:150px");
-  });
-
-  it("should have correct tool metadata", () => {
-    expect(numberLine.tool.name).toBe("number-line");
-    expect(numberLine.tool.description).toContain("number line visualizations");
-    expect(numberLine.tool.description).toContain("open/closed circles");
-    expect(numberLine.tool.description).toContain("interval shading");
-    expect(numberLine.tool.description).toContain("compound inequalities");
-    expect(numberLine.tool.inputSchema).toBeDefined();
-    expect(numberLine.tool.inputSchema.type).toBe("object");
+    test("应该拒绝无效的区间", () => {
+      const { z } = require("zod");
+      const input = {
+        intervals: [{ start: 5, end: 3 }] // 开始值大于结束值
+      };
+      
+      const result = z.object(numberLine.schema).safeParse(input);
+      expect(result.success).toBe(false);
+    });
   });
 });

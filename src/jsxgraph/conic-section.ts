@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { zodToJsonSchema } from "../utils";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   BoundingBoxSchema,
   JSXGraphAxisSchema,
@@ -244,7 +244,7 @@ const tool = {
   name: "generate_conic_section",
   description:
     "Generate conic sections and high-degree polynomials using JSXGraph. Visualize circles, ellipses, parabolas, hyperbolas with their foci, directrices, vertices, and asymptotes. Plot polynomials with roots, critical points, and inflection points. Supports general conic equations, rotated conics, and intersection analysis.",
-  inputSchema: zodToJsonSchema(schema),
+  inputSchema: zodToJsonSchema(z.object(schema)),
 };
 
 export const conicSection = {
