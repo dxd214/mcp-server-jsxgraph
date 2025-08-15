@@ -1,6 +1,6 @@
 # MCP Server JSXGraph  ![](https://badge.mcpx.dev?type=server 'MCP Server')
 
-**Latest Stable Version: 0.1.1** | **NPM Package: `mcp-server-jsxgraph`**
+**Latest Stable Version: 0.1.2** | **NPM Package: `mcp-server-jsxgraph`**
 
 A Model Context Protocol server for generating mathematical visualizations using [JSXGraph](https://jsxgraph.org/). This MCP server provides interactive mathematical chart generation capabilities for functions, geometry, parametric curves, and educational mathematics.
 
@@ -401,7 +401,7 @@ You can disable specific mathematical visualization tools using the `DISABLED_TO
 - Deprecation warnings will provide 2-3 minor version transition periods before removal
 
 **Current Stable APIs:**
-- NPM Package: `mcp-server-jsxgraph@0.1.1`
+- NPM Package: `mcp-server-jsxgraph@0.1.2`
 - CLI Arguments: `--transport`, `--port`, `--endpoint` 
 - STDIO Transport: Default behavior for desktop clients
 - SSE Endpoint: `/sse` on specified port
