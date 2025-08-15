@@ -1,8 +1,42 @@
 # MCP Server JSXGraph  ![](https://badge.mcpx.dev?type=server 'MCP Server')
 
+**Latest Stable Version: 0.1.1** | **NPM Package: `mcp-server-jsxgraph`**
+
 A Model Context Protocol server for generating mathematical visualizations using [JSXGraph](https://jsxgraph.org/). This MCP server provides interactive mathematical chart generation capabilities for functions, geometry, parametric curves, and educational mathematics.
 
 This is a TypeScript-based MCP server that provides mathematical visualization capabilities. It allows you to create various types of mathematical charts and diagrams through MCP tools, perfect for educational mathematics, engineering, and scientific applications.
+
+## 🚀 Quick Reference
+
+### Transport & Connection Matrix
+
+| Scenario | Command | Listen Port | Access Endpoint | Use Case |
+|----------|---------|-------------|-----------------|----------|
+| **STDIO (Default)** | `npx -y mcp-server-jsxgraph` | N/A | N/A | Desktop/IDE clients (Claude, Cursor, Cline) |
+| **SSE (Local)** | `mcp-server-jsxgraph --transport sse` | 1122 | `http://localhost:1122/sse` | Web streaming applications |
+| **Streamable (Local)** | `mcp-server-jsxgraph --transport streamable` | 1122 | `http://localhost:1122/mcp` | HTTP streaming clients |
+| **Docker SSE** | `docker compose up -d` (sse service) | 1123 | `http://localhost:1123/sse` | Containerized SSE deployment |
+| **Docker Streamable** | `docker compose up -d` (streamable service) | 1122 | `http://localhost:1122/mcp` | Containerized Streamable deployment |
+
+### Minimal Working Configuration
+
+**Desktop Clients (Claude Desktop, Cursor, Cline):**
+```json
+{
+  "mcpServers": {
+    "mcp-server-jsxgraph": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-jsxgraph"]
+    }
+  }
+}
+```
+
+**SSE Self-Test (Browser Verification):**
+```bash
+npx -y mcp-server-jsxgraph --transport sse --port 1122
+# Open: http://localhost:1122/sse
+```
 
 ## 📋 Table of Contents
 
@@ -228,35 +262,29 @@ graph TD
 
 ## 🤖 Usage
 
-To use with `Desktop APP`, such as Claude, VSCode, [Cline](https://cline.bot/mcp-marketplace), Cherry Studio, Cursor, and so on, add the MCP server config below. On Mac system:
+### Desktop Applications
 
+For desktop MCP clients like Claude Desktop, VSCode, [Cline](https://cline.bot/mcp-marketplace), Cherry Studio, Cursor, use the standard STDIO configuration (see [Quick Reference](#-quick-reference) above).
+
+**Cross-platform configuration (recommended):**
 ```json
 {
   "mcpServers": {
     "mcp-server-jsxgraph": {
       "command": "npx",
-      "args": [
-        "-y",
-        "mcp-server-jsxgraph"
-      ]
+      "args": ["-y", "mcp-server-jsxgraph"]
     }
   }
 }
 ```
 
-On Window system:
-
+**Windows-specific (if npx doesn't work directly):**
 ```json
 {
   "mcpServers": {
     "mcp-server-jsxgraph": {
       "command": "cmd",
-      "args": [
-        "/c",
-        "npx",
-        "-y",
-        "mcp-server-jsxgraph"
-      ]
+      "args": ["/c", "npx", "-y", "mcp-server-jsxgraph"]
     }
   }
 }
@@ -339,7 +367,7 @@ You can disable specific mathematical visualization tools using the `DISABLED_TO
       "command": "npx",
       "args": [
         "-y",
-        "@dxd/mcp-server-jsxgraph"
+        "mcp-server-jsxgraph"
       ],
       "env": {
         "DISABLED_TOOLS": "generate_function_graph,generate_parametric_curve"
@@ -362,6 +390,23 @@ You can disable specific mathematical visualization tools using the `DISABLED_TO
 - `generate_equation_system`
 - `generate_conic_section`
 - `generate_polynomial_steps`
+
+## 🔒 Compatibility & Stability Promise
+
+**Never Break Userspace Commitment:**
+- Published CLI parameters and default behavior will remain stable across minor versions
+- Existing transport endpoints (`/sse`, `/mcp`) will not change
+- Package name `mcp-server-jsxgraph` will remain consistent
+- New features will use new flags/endpoints, leaving existing behavior intact
+- Deprecation warnings will provide 2-3 minor version transition periods before removal
+
+**Current Stable APIs:**
+- NPM Package: `mcp-server-jsxgraph@0.1.1`
+- CLI Arguments: `--transport`, `--port`, `--endpoint` 
+- STDIO Transport: Default behavior for desktop clients
+- SSE Endpoint: `/sse` on specified port
+- Streamable Endpoint: `/mcp` on specified port
+- Environment Variables: `DISABLED_TOOLS`
 
 ## 🔨 Development
 

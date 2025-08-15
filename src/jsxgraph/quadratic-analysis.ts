@@ -17,23 +17,28 @@ import {
 } from "./jsxgraph-base";
 
 // Quadratic function schema
-const QuadraticFunctionSchema = z.object({
-  a: z.number().describe("Coefficient of x² (ax² + bx + c)"),
-  b: z.number().describe("Coefficient of x (ax² + bx + c)"),
-  c: z.number().describe("Constant term (ax² + bx + c)"),
-  color: z
-    .string()
-    .optional()
-    .default("#0066cc")
-    .describe("Color of the parabola"),
-  strokeWidth: z.number().optional().default(2).describe("Width of the curve"),
-  name: z.string().optional().describe("Label for the function"),
-  dash: z
-    .number()
-    .optional()
-    .default(0)
-    .describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
-});
+const QuadraticFunctionSchema = z
+  .object({
+    a: z.number().describe("Coefficient of x² (ax² + bx + c)"),
+    b: z.number().describe("Coefficient of x (ax² + bx + c)"),
+    c: z.number().describe("Constant term (ax² + bx + c)"),
+    color: z
+      .string()
+      .optional()
+      .default("#0066cc")
+      .describe("Color of the parabola"),
+    strokeWidth: z.number().optional().default(2).describe("Width of the curve"),
+    name: z.string().optional().describe("Label for the function"),
+    dash: z
+      .number()
+      .optional()
+      .default(0)
+      .describe("Dash style (0=solid, 1=dotted, 2=dashed)"),
+  })
+  .refine((q) => q.a !== 0, {
+    message: "Coefficient 'a' must be non-zero for a quadratic function.",
+    path: ["a"],
+  });
 
 // Quadratic analysis input schema
 const schema = {
@@ -111,6 +116,14 @@ const schema = {
     })
     .optional()
     .describe("Region to shade relative to the parabola"),
+  comparison: z
+    .object({
+      enabled: z.boolean().optional().default(true),
+      showDifferences: z.boolean().optional().default(false),
+      highlightIntersections: z.boolean().optional().default(false),
+    })
+    .optional()
+    .describe("Comparison options for multiple quadratics"),
   compareMode: z
     .enum(["overlay", "transform-sequence"])
     .optional()

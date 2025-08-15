@@ -336,29 +336,15 @@ function generateConicSectionCode(config: any, boundingBox: number[]): string {
       case "parabola":
         if (p !== undefined) {
           if (orientation === "vertical") {
-            jsCode += `var parabola${index} = board.create('parabola', [${vertex.x}, ${vertex.y}, ${p}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Parabola (${vertex.x}, ${vertex.y}) p=${p}`}'});\n`;
-            
-            // Show focus
-            if (showFoci) {
-              jsCode += `var focus${index} = board.create('point', [${vertex.x}, ${vertex.y + p}], {name: 'Focus', size: 4, color: '#ff0000', fixed: true});\n`;
-            }
-            
-            // Show directrix
-            if (showDirectrix) {
-              jsCode += `var directrix${index} = board.create('line', [0, 1, -${vertex.y - p}], {strokeColor: '#ff6600', strokeWidth: 2, dash: 1, name: 'Directrix'});\n`;
-            }
+            // Use focus-directrix definition; standard form y - y0 = (x - x0)^2 / (4p), focus at (x0, y0 + p), directrix y = y0 - p
+            jsCode += `var focus${index} = [${vertex.x}, ${vertex.y + p}];\n`;
+            jsCode += `var directrix${index} = board.create('line', [[${center?.x ?? vertex.x - 3}, ${vertex.y - p}], [${center?.x ?? vertex.x + 3}, ${vertex.y - p}]], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, opacity: 0.5, name: 'Directrix', straightFirst: false, straightLast: false});\n`;
+            jsCode += `var parabola${index} = board.create('parabola', [focus${index}, directrix${index}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Parabola (${vertex.x}, ${vertex.y}) p=${p}`}'});\n`;
           } else {
-            jsCode += `var parabola${index} = board.create('parabola', [${vertex.x}, ${vertex.y}, ${p}, 'horizontal'], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Parabola (${vertex.x}, ${vertex.y}) p=${p}`}'});\n`;
-            
-            // Show focus
-            if (showFoci) {
-              jsCode += `var focus${index} = board.create('point', [${vertex.x + p}, ${vertex.y}], {name: 'Focus', size: 4, color: '#ff0000', fixed: true});\n`;
-            }
-            
-            // Show directrix
-            if (showDirectrix) {
-              jsCode += `var directrix${index} = board.create('line', [1, 0, -${vertex.x - p}], {strokeColor: '#ff6600', strokeWidth: 2, dash: 1, name: 'Directrix'});\n`;
-            }
+            // Horizontal opening: x - x0 = (y - y0)^2 / (4p), focus at (x0 + p, y0), directrix x = x0 - p
+            jsCode += `var focus${index} = [${vertex.x + p}, ${vertex.y}];\n`;
+            jsCode += `var directrix${index} = board.create('line', [[${vertex.x - p}, ${center?.y ?? vertex.y - 3}], [${vertex.x - p}, ${center?.y ?? vertex.y + 3}]], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, opacity: 0.5, name: 'Directrix', straightFirst: false, straightLast: false});\n`;
+            jsCode += `var parabola${index} = board.create('parabola', [focus${index}, directrix${index}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Parabola (${vertex.x}, ${vertex.y}) p=${p}`}'});\n`;
           }
           
           // Show vertex
@@ -370,38 +356,38 @@ function generateConicSectionCode(config: any, boundingBox: number[]): string {
         
       case "hyperbola":
         if (a !== undefined && b !== undefined) {
+          // Use foci and semi-major axis length 'a'
+          const c = Math.sqrt(a * a + b * b);
           if (orientation === "horizontal") {
-            jsCode += `var hyperbola${index} = board.create('hyperbola', [[${center.x}, ${center.y}], [${center.x + a}, ${center.y}], [${center.x}, ${center.y + b}]], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Hyperbola (${center.x}, ${center.y}) a=${a}, b=${b}`}'});\n`;
+            jsCode += `var f1_${index} = [${center.x - c}, ${center.y}];\n`;
+            jsCode += `var f2_${index} = [${center.x + c}, ${center.y}];\n`;
           } else {
-            jsCode += `var hyperbola${index} = board.create('hyperbola', [[${center.x}, ${center.y}], [${center.x}, ${center.y + a}], [${center.x + b}, ${center.y}]], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Hyperbola (${center.x}, ${center.y}) a=${a}, b=${b}`}'});\n`;
+            jsCode += `var f1_${index} = [${center.x}, ${center.y - c}];\n`;
+            jsCode += `var f2_${index} = [${center.x}, ${center.y + c}];\n`;
           }
+          jsCode += `var hyperbola${index} = board.create('hyperbola', [f1_${index}, f2_${index}, ${a}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, dash: ${dash}, name: '${name || `Hyperbola (${center.x}, ${center.y}) a=${a}, b=${b}`}'});\n`;
           
           // Show foci
           if (showFoci) {
-            const c = Math.sqrt(a * a + b * b);
-            if (orientation === "horizontal") {
-              jsCode += `var focus1_${index} = board.create('point', [${center.x + c}, ${center.y}], {name: 'F₁', size: 4, color: '#ff0000', fixed: true});\n`;
-              jsCode += `var focus2_${index} = board.create('point', [${center.x - c}, ${center.y}], {name: 'F₂', size: 4, color: '#ff0000', fixed: true});\n`;
-            } else {
-              jsCode += `var focus1_${index} = board.create('point', [${center.x}, ${center.y + c}], {name: 'F₁', size: 4, color: '#ff0000', fixed: true});\n`;
-              jsCode += `var focus2_${index} = board.create('point', [${center.x}, ${center.y - c}], {name: 'F₂', size: 4, color: '#ff0000', fixed: true});\n`;
-            }
+            jsCode += `board.create('point', f1_${index}, {name: 'F₁', size: 4, color: '#ff0000', fixed: true});\n`;
+            jsCode += `board.create('point', f2_${index}, {name: 'F₂', size: 4, color: '#ff0000', fixed: true});\n`;
           }
           
           // Show center
           if (showCenter) {
-            jsCode += `var center${index} = board.create('point', [${center.x}, ${center.y}], {name: 'Center', size: 4, color: '#ff6600', fixed: true});\n`;
+            jsCode += `board.create('point', [${center.x}, ${center.y}], {name: 'Center', size: 4, color: '#ff6600', fixed: true});\n`;
           }
           
           // Show asymptotes
           if (showAsymptotes) {
-            const slope = b / a;
+            const slopeH = b / a; // horizontal opening
+            const slopeV = a !== 0 ? a / b : 0; // vertical opening
             if (orientation === "horizontal") {
-              jsCode += `var asymptote1_${index} = board.create('line', [${slope}, -1, ${center.y - slope * center.x}], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 1'});\n`;
-              jsCode += `var asymptote2_${index} = board.create('line', [-${slope}, -1, ${center.y + slope * center.x}], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 2'});\n`;
+              jsCode += `board.create('line', [[${center.x - 5}, ${center.y - slopeH * 5}], [${center.x + 5}, ${center.y + slopeH * 5}]], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 1', straightFirst: false, straightLast: false});\n`;
+              jsCode += `board.create('line', [[${center.x - 5}, ${center.y + slopeH * 5}], [${center.x + 5}, ${center.y - slopeH * 5}]], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 2', straightFirst: false, straightLast: false});\n`;
             } else {
-              jsCode += `var asymptote1_${index} = board.create('line', [1, -${slope}, ${center.x - slope * center.y}], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 1'});\n`;
-              jsCode += `var asymptote2_${index} = board.create('line', [1, ${slope}, ${center.x + slope * center.y}], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 2'});\n`;
+              jsCode += `board.create('line', [[${center.x - 5}, ${center.y - slopeV * 5}], [${center.x + 5}, ${center.y + slopeV * 5}]], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 1', straightFirst: false, straightLast: false});\n`;
+              jsCode += `board.create('line', [[${center.x - 5}, ${center.y + slopeV * 5}], [${center.x + 5}, ${center.y - slopeV * 5}]], {strokeColor: '#ff6600', strokeWidth: 1, dash: 2, name: 'Asymptote 2', straightFirst: false, straightLast: false});\n`;
             }
           }
         }
@@ -412,7 +398,7 @@ function generateConicSectionCode(config: any, boundingBox: number[]): string {
   // Process general conic equations
   generalConics.forEach((conic: any, index: number) => {
     const { A, B, C, D, E, F, color = "#009900", strokeWidth = 2, name = "" } = conic;
-    jsCode += `var generalConic${index} = board.create('implicit', [${A}*x*x + ${B}*x*y + ${C}*y*y + ${D}*x + ${E}*y + ${F}], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, name: '${name || `General Conic ${A}x² + ${B}xy + ${C}y² + ${D}x + ${E}y + ${F} = 0`}'});\n`;
+    jsCode += `var generalConic${index} = board.create('implicitcurve', [function(x, y) { return ${A}*x*x + ${B}*x*y + ${C}*y*y + ${D}*x + ${E}*y + ${F}; }], {strokeColor: '${color}', strokeWidth: ${strokeWidth}, name: '${name || `General Conic ${A}x² + ${B}xy + ${C}y² + ${D}x + ${E}y + ${F} = 0`}'});\n`;
   });
   
   // Process polynomials

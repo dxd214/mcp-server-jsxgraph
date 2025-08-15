@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2024-08-15
+
+### Documentation
+- **BREAKING FIX**: Fixed critical package name inconsistency in README (`@dxd/mcp-server-jsxgraph` → `mcp-server-jsxgraph`)
+- **BREAKING FIX**: Fixed Docker port mapping documentation to match actual docker-compose.yml configuration
+- Added comprehensive "Transport & Connection Matrix" with single source of truth for all deployment scenarios
+- Added "Quick Reference" section with minimal working configurations for immediate use
+- Added "Compatibility & Stability Promise" section with Never Break Userspace commitment
+- Fixed spelling error: "Window system" → "Windows system"
+- Restructured usage section with cross-platform configuration recommendations
+- Added version badge and NPM package identifier at top of README
+
+### Quality Improvements
+- Eliminated documentation inconsistencies that could cause user integration failures
+- Established single source of truth for package name, ports, and endpoints
+- Added browser-verifiable SSE self-test instructions
+- Improved new user onboarding with copy-paste ready configurations
+
+### Stability Commitment
+- Formalized API stability promise for CLI parameters, transport endpoints, and package naming
+- Committed to 2-3 version deprecation periods before breaking changes
+- Established clear versioning and compatibility policies
+
+## [0.1.1] - 2024-08-14
+
+### Features
+- Added comprehensive test suite with integration tests for all JSXGraph tools
+- Enhanced system architecture documentation with detailed diagrams
+
 ## [0.1.0] - 2024-08-14
 
 ### Added

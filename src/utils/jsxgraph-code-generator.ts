@@ -1658,9 +1658,7 @@ function generateExponentialLogarithmCode(config: any, boundingBox: number[], co
     `;
   }
 
-  code += `
-    return board;
-  `;
+  // Do not return from within injected code to avoid illegal return in some embedding contexts
 
   return code;
 }
@@ -1755,21 +1753,14 @@ function generateConicSectionCode(config: any, boundingBox: number[], containerI
       // Ellipse with semi-major axis a=${a} and semi-minor axis b=${b}
       var a = ${a || 3};
       var b = ${b || 2};
-      var f1, f2;
+      // Axis direction unit vectors with rotation
+      var ux = [Math.cos(rotation), Math.sin(rotation)];
+      var uy = [-Math.sin(rotation), Math.cos(rotation)];
+      // Points on the endpoints of semi-axes
+      var pA = [center[0] + a * ux[0], center[1] + a * ux[1]];
+      var pB = [center[0] + b * uy[0], center[1] + b * uy[1]];
       
-      if (a > b) {
-        // Major axis along x
-        var c = Math.sqrt(a*a - b*b);
-        f1 = [center[0] - c * Math.cos(rotation), center[1] - c * Math.sin(rotation)];
-        f2 = [center[0] + c * Math.cos(rotation), center[1] + c * Math.sin(rotation)];
-      } else {
-        // Major axis along y
-        var c = Math.sqrt(b*b - a*a);
-        f1 = [center[0] - c * Math.sin(rotation), center[1] + c * Math.cos(rotation)];
-        f2 = [center[0] + c * Math.sin(rotation), center[1] - c * Math.cos(rotation)];
-      }
-      
-      var ellipse = board.create('ellipse', [f1, f2, a + b], {
+      var ellipse = board.create('ellipse', [center, pA, pB], {
         strokeColor: color,
         strokeWidth: strokeWidth,
         dash: dash,
@@ -1777,6 +1768,15 @@ function generateConicSectionCode(config: any, boundingBox: number[], containerI
         fillOpacity: fillOpacity,
         name: '${name || `E${index + 1}`}'
       });
+      
+      // Compute foci for optional display
+      var c = Math.sqrt(Math.abs(a*a - b*b));
+      var f1 = a >= b 
+        ? [center[0] - c * ux[0], center[1] - c * ux[1]]
+        : [center[0] - c * uy[0], center[1] - c * uy[1]];
+      var f2 = a >= b 
+        ? [center[0] + c * ux[0], center[1] + c * ux[1]]
+        : [center[0] + c * uy[0], center[1] + c * uy[1]];
       `;
           break;
 
@@ -2070,9 +2070,7 @@ function generateConicSectionCode(config: any, boundingBox: number[], containerI
     `;
   }
 
-  code += `
-    return board;
-  `;
+  // Do not return from within injected code to avoid illegal return in some embedding contexts
 
   return code;
 }
@@ -2639,9 +2637,7 @@ export function generateTrigonometricAnalysisCode(containerId: string, config: J
     `;
   }
 
-  code += `
-    return board;
-  `;
+  // Do not return from within injected code to avoid illegal return in some embedding contexts
 
   return code;
 }
