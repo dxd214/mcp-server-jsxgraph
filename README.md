@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/dxd214-mcp-server-jsxgraph-badge.png)](https://mseep.ai/app/dxd214-mcp-server-jsxgraph)
+
 # MCP Server JSXGraph  ![](https://badge.mcpx.dev?type=server 'MCP Server')
 
 **Latest Stable Version: 0.1.2** | **NPM Package: `mcp-server-jsxgraph`**
